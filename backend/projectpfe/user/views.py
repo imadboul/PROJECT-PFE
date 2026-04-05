@@ -99,7 +99,7 @@ def refresh_access(request):
 
     access_token, _ = create_jwt(user)
 
-    return Response({"access_token": access_token})
+    return Response({"accessToken": access_token})
     
 def notify_all_superadmin(title,content,link):
     
