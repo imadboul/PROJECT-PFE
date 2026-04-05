@@ -33,25 +33,28 @@ api.interceptors.response.use(
 
         if (!refresh) throw new Error("No refresh token");
 
-        const res = await api.post("/client/refresh/", {
-          refresh,
-        });
+        // ✅ IMPORTANT: use axios (NOT api)
+        const res = await axios.post(
+          "http://127.0.0.1:8000/client/refresh/",
+          { refresh }
+        );
 
         const newAccess = res.data.access;
 
-        // update storage
-        localStorage.setItem("access", newAccess);
+        localStorage.setItem("accessToken", newAccess);
 
-        // update header
-        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+        originalRequest.headers.Auth = `Bearer ${newAccess}`;
 
         return api(originalRequest);
       } catch (err) {
         console.log("Refresh failed", err);
 
-        // clear tokens
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+
+        window.location.href = "/";
+
+        return Promise.reject(err);
       }
     }
 

@@ -8,39 +8,23 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Restore user from token
+  // Restore user
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access");
 
     if (token) {
       try {
         const decoded = jwtDecode(token);
         setUser(decoded);
       } catch (e) {
-        localStorage.removeItem("token");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
       }
     }
     setLoading(false);
   }, []);
 
-  // ✅ SIGN UP
-  async function signUp(data) {
-    try {
-      await api.post("/client/signUp/", {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        phoneNumber: data.phoneNumber,
-      });
-
-
-      return { success: true, message: "Registration successful.Please check your email to verify your account." };
-    } catch (err) {
-      return { success: false, error: err.response?.data };
-    }
-  }
-
+  // LOGIN
   async function login(email, password) {
     try {
       const res = await api.post("/client/login/", {
@@ -51,33 +35,40 @@ export default function AuthProvider({ children }) {
       const accessToken = res.data.access;
       const refreshToken = res.data.refresh;
 
-
       localStorage.setItem("access", accessToken);
       localStorage.setItem("refresh", refreshToken);
 
       const decoded = jwtDecode(accessToken);
       setUser(decoded);
 
-      return { success: true, message: "Login successful" };
+      return { success: true };
     } catch (err) {
       return {
         success: false,
-        error: err.response?.data?.message || "Login failed",
+        error: err.response?.data || "Login failed",
       };
     }
   }
-  // ✅ LOGOUT
-  function logout() {
-    localStorage.removeItem("token");
-    localStorage.clear();
 
+  // SIGNUP
+  async function signUp(data) {
+    try {
+      await api.post("/client/signUp/", data);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.response?.data };
+    }
+  }
+
+  // LOGOUT
+  function logout() {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider
-      value={{ signUp, login, logout, user, loading }}
-    >
+    <AuthContext.Provider value={{ user, loading, login, signUp, logout }}>
       {children}
     </AuthContext.Provider>
   );

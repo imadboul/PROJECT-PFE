@@ -25,22 +25,20 @@ export default function Login() {
 
   async function onSubmit(data) {
     setLoading(true);
+
     const result = await login(data.email, data.password);
 
-    try {
-      if (result.success) {
-        toast.success("Login successful");
-        navigate("/Home");
-      } else {
-        setAuthError(result.error);
-        toast.error("Login failed");
-      }
-    } catch (err) {
-      toast.error(authError||"Failed to load contracts");
-    } finally {
-      setLoading(false); 
+    if (result.success) {
+      toast.success("Login successful");
+      navigate("/Home");
+    } else {
+      setAuthError(result.error);
+      toast.error("Login failed");
     }
+
+    setLoading(false);
   }
+
 
 
   return (

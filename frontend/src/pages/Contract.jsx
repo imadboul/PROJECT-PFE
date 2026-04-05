@@ -8,36 +8,30 @@ export default function ContractsList() {
   const [showActive, setShowActive] = useState(true);
   const [selectedContract, setSelectedContract] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  // fetch data from backend
-  useEffect(() => {
-    fetchContracts();
-  }, []);
-
-
-  // fetch contracts from backend
   const fetchContracts = async () => {
     try {
       setLoading(true);
       const res = await getContracts();
       setContracts(res.data.contracts || res.data);
     } catch (err) {
-      setError("Failed to load contracts");
-      toast.error(error || "Failed to load contracts");
+      toast.error("Failed to load contracts");
     } finally {
       setLoading(false);
     }
   };
 
-  function changeStatus() {
-    setShowActive(!showActive);
-  }
+  const changeStatus = () => {
+    setShowActive((prev) => !prev);
+  };
+
+  useEffect(() => {
+    fetchContracts();
+  }, []);
 
   if (loading) {
     return <div className="text-white text-center mt-10">Loading...</div>;
   }
-
 
   return (
     <div className="p-6 flex justify-center relative z-10">
@@ -59,81 +53,101 @@ export default function ContractsList() {
 
           <NavLink
             to="/AddContract"
-            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10 mb-4 cursor-pointer">
+            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10 mb-4 cursor-pointer"
+          >
             Request new contract
           </NavLink>
         </div>
 
-        {/* Cards */}
+        {/* LIST */}
         {contracts
-          .filter((c) => (showActive ? c.isActive : !c.isActive))
+          .filter((c) =>
+            showActive
+              ? c.state === "validated"
+              : c.state !== "validated"
+          )
           .map((c) => {
-            const used = c.Qtetotal - c.Qteremaining;
-            const percentage = (used / c.Qtetotal) * 100;
-
             return (
               <div
                 key={c.id}
                 onClick={() => setSelectedContract(c)}
-                className="cursor-pointer bg-black/50 text-white shadow-md rounded-2xl p-5 border hover:bg-black/80 transition"
+                className="cursor-pointer bg-black/50 text-white rounded-2xl p-5 border hover:bg-black/80 transition"
               >
-                {/* Header */}
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-bold">
-                    Contract #{c.number}
-                  </h2>
+                <div className="space-y-2 text-sm">
 
-                  <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">
-                    {c.type}
-                  </span>
-                </div>
-
-                {/* Quantities */}
-                <div className="mt-3 text-sm flex justify-between">
-                  <p>Total: {c.Qtetotal}</p>
-                  <p>Remaining: {c.Qteremaining}</p>
-                </div>
-
-                {/* Progress */}
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 h-2 rounded">
-                    <div
-                      className="bg-orange-500 h-2 rounded"
-                      style={{ width: `${percentage}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs mt-1 text-right">
-                    {Math.round(percentage)}% used
+                  <p>
+                    <strong>Start date:</strong>{" "}
+                    {c.start_date}
                   </p>
+
+                  <p>
+                    <strong>End date:</strong>{" "}
+                    {c.end_date}
+                  </p>
+
+                  <p>
+                    <strong>Validated at:</strong>{" "}
+                    {c.validated_at}
+                  </p>
+
+                  <p>
+                    <strong>State:</strong>{" "}
+                    {c.state === "validated" ? "Active" : "Inactive"}
+                  </p>
+
+                  <p>
+                    <strong>Product type:</strong>{" "}
+                    {c.product_type}
+                  </p>
+
                 </div>
               </div>
             );
           })}
       </div>
 
-      {/* Modal */}
+      {/* MODAL */}
       {selectedContract && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-transparent border border-white text-white p-6 rounded-xl w-[300px] md:w-[400px] relative">
+          <div className="bg-black border border-white text-white p-6 rounded-xl w-[350px] relative">
 
             <button
               onClick={() => setSelectedContract(null)}
-              className="absolute top-2 right-3 text-white hover:text-red-500 text-xl"
+              className="absolute top-2 right-3 text-white hover:text-red-500"
             >
               ✕
             </button>
 
-            <h2 className="text-lg font-bold mb-4">
-              Contract #{selectedContract.number}
-            </h2>
+            <div className="space-y-2 text-sm">
 
-            <p><strong>Type:</strong> {selectedContract.type}</p>
-            <p><strong>Total:</strong> {selectedContract.Qtetotal}</p>
-            <p><strong>Remaining:</strong> {selectedContract.Qteremaining}</p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {selectedContract.isActive ? "Active" : "Inactive"}
-            </p>
+              <p>
+                <strong>Start date:</strong>{" "}
+                {selectedContract.start_date}
+              </p>
+
+              <p>
+                <strong>End date:</strong>{" "}
+                {selectedContract.end_date}
+              </p>
+
+              <p>
+                <strong>Validated at:</strong>{" "}
+                {selectedContract.validated_at}
+              </p>
+
+              <p>
+                <strong>State:</strong>{" "}
+                {selectedContract.state === "validated"
+                  ? "Active"
+                  : "Inactive"}
+              </p>
+
+              <p>
+                <strong>Product type:</strong>{" "}
+                {selectedContract.product_type}
+              </p>
+
+            </div>
           </div>
         </div>
       )}

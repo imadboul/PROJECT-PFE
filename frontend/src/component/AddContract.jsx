@@ -19,9 +19,20 @@ function AddContract() {
     const fetchProductTypes = async () => {
       try {
         const res = await getProductTypes("/catalog/productType/");
-        setProductTypes(res.data);
+
+        console.log(res.data);
+
+        // handle different API shapes
+        const data =
+          res.data.results ||
+          res.data.types ||
+          res.data;
+
+        setProductTypes(Array.isArray(data) ? data : []);
+
       } catch (err) {
         toast.error("Error fetching product types");
+        console.log(err);
       }
     };
 
@@ -49,10 +60,10 @@ function AddContract() {
       setLoading(true);
 
       const payload = {
-        typeProduct: form.typeProduct,
-        qteGlobale: Number(form.qteGlobale),
-        startDate: new Date(form.startDate).toISOString(),
-        endDate: new Date(form.endDate).toISOString(),
+        product_type: Number(form.typeProduct),
+        qte_global: Number(form.qteGlobale),
+        start_date: new Date(form.startDate + "T00:00:00").toISOString(),
+        end_date: new Date(form.endDate + "T23:59:59").toISOString(),
       };
 
       await createContract("/catalog/contract/", payload);
@@ -67,6 +78,7 @@ function AddContract() {
       });
 
     } catch (error) {
+      console.log(error);
       toast.error("Failed to create contract");
     } finally {
       setLoading(false);
@@ -93,11 +105,13 @@ function AddContract() {
             className="w-full p-2 text-black rounded border border-black focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             <option value="">Select Product Type</option>
-            {productTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
+
+            {Array.isArray(productTypes) &&
+              productTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
           </select>
 
           {/* Quantity */}
