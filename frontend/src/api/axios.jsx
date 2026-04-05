@@ -6,7 +6,7 @@ const api = axios.create({
 
 // Attach access token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access");
+  const token = localStorage.getItem("accessToken");
 
   if (token) {
     config.headers.Auth = `Bearer ${token}`;
@@ -33,7 +33,6 @@ api.interceptors.response.use(
 
         if (!refresh) throw new Error("No refresh token");
 
-        // ✅ IMPORTANT: use axios (NOT api)
         const res = await axios.post(
           "http://127.0.0.1:8000/client/refresh/",
           { refresh }

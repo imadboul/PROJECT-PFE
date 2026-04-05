@@ -24,7 +24,6 @@ function AddContract() {
 
         // handle different API shapes
         const data =
-          res.data.results ||
           res.data.types ||
           res.data;
 
@@ -51,22 +50,39 @@ function AddContract() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.typeProduct || !form.startDate || !form.endDate) {
+    if (!form.typeProduct || !form.startDate || !form.endDate || !form.qteGlobale) {
       toast.error("Please fill all required fields");
       return;
     }
 
+    const start = new Date(form.startDate);
+    const end = new Date(form.endDate);
+
+    if (isNaN(start) || isNaN(end)) {
+      toast.error("Invalid date format");
+      return;
+    }
+
+    const quantity = Number(form.qteGlobale);
+
+    if (isNaN(quantity) || quantity <= 0) {
+      toast.error("Invalid quantity");
+      return;
+    }
+
+    const payload = {
+      product_type: Number(form.typeProduct),
+      qte_global: quantity,
+      start_date: start.toISOString(),
+      end_date: end.toISOString(),
+    };
+
+    console.log("SENDING:", payload);
+
     try {
       setLoading(true);
 
-      const payload = {
-        product_type: Number(form.typeProduct),
-        qte_global: Number(form.qteGlobale),
-        start_date: new Date(form.startDate + "T00:00:00").toISOString(),
-        end_date: new Date(form.endDate + "T23:59:59").toISOString(),
-      };
-
-      await createContract("/catalog/contract/", payload);
+      await createContract(payload);
 
       toast.success("Contract created successfully");
 
@@ -78,7 +94,6 @@ function AddContract() {
       });
 
     } catch (error) {
-      console.log(error);
       toast.error("Failed to create contract");
     } finally {
       setLoading(false);

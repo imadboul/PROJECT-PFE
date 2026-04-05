@@ -15,14 +15,28 @@ function AddProduct() {
 
     const [productTypes, setProductTypes] = useState([]);
 
-    useEffect(() => {
-        const fetchTypes = async () => {
-            const res = await getProductTypes("/catalog/productType/");
-            setProductTypes(res.data);
-        };
+   useEffect(() => {
+    const fetchProductTypes = async () => {
+      try {
+        const res = await getProductTypes("/catalog/productType/");
 
-        fetchTypes();
-    }, []);
+        console.log(res.data);
+
+        // handle different API shapes
+        const data =
+          res.data.types ||
+          res.data;
+
+        setProductTypes(Array.isArray(data) ? data : []);
+
+      } catch (err) {
+        toast.error("Error fetching product types");
+        console.log(err);
+      }
+    };
+
+    fetchProductTypes();
+  }, []);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,7 +55,7 @@ function AddProduct() {
                 productType: form.productType,
             };
 
-            await createProduct("/catalog/products/", payload);
+            await createProduct(payload);
             toast.success("Product created");
         } catch (err) {
             toast.error("Error creating product");
@@ -98,18 +112,21 @@ function AddProduct() {
 
                     {/* Product Type */}
                     <div className="flex justify-center items-center gap-4">
+                       
                         <select
-                            name="productType"
+                            name="typeProduct"
+                            value={form.typeProduct}
                             onChange={handleChange}
-                            className="w-full text-black p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            className="w-full p-2 text-black rounded border border-black focus:outline-none focus:ring-2 focus:ring-orange-500"
                         >
                             <option value="">Select Product Type</option>
-                            {productTypes.map((type) => (
-                                <option key={type.id} value={type.id}>
-                                    {type.name}
-                                </option>
-                            ))}
 
+                            {Array.isArray(productTypes) &&
+                                productTypes.map((type) => (
+                                    <option key={type.id} value={type.id}>
+                                        {type.name}
+                                    </option>
+                                ))}
                         </select>
                         <NavLink to="/AddProductType" className="text-orange-400 px-4 py-2 text-xl hover:text-orange-600 transition">
                             <i className="fa-solid fa-plus"></i>
