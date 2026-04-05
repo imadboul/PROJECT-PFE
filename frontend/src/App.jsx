@@ -15,6 +15,7 @@ import SuperAdminRoute from "./component/SuperAdminRoute";
 import AddProductType from "./component/AddProductType";
 import AddContract from "./component/AddContract";
 import AddProduct from "./component/AddProduct";
+import EditProductType from "./component/EditProductType";
 
 /* Layout */
 function Layout() {
@@ -67,6 +68,16 @@ function App() {
             <SuperAdminRoute>
               <AddProductType />
             </SuperAdminRoute>} />
+
+             <Route path="/EditProductType/:id" element={
+            <SuperAdminRoute>
+              <EditProductType/>
+            </SuperAdminRoute>} />
+            <Route path="/EditProductType/" element={
+            <SuperAdminRoute>
+              <EditProductType/>
+            </SuperAdminRoute>} />
+
 
           <Route path="/Home" element={<Home />} />
           <Route path="/Contracts" element={<ContractsList />} />
