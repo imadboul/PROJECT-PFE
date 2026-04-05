@@ -18,7 +18,7 @@ function AddProduct() {
    useEffect(() => {
     const fetchProductTypes = async () => {
       try {
-        const res = await getProductTypes("/catalog/productType/");
+        const res = await getProductTypes();
 
         console.log(res.data);
 
@@ -58,7 +58,7 @@ function AddProduct() {
             await createProduct(payload);
             toast.success("Product created");
         } catch (err) {
-            toast.error("Error creating product");
+            toast.error("Error creating product",err);
         } finally {
             setLoading(false);
         }
@@ -102,7 +102,8 @@ function AddProduct() {
                     />
 
                     {/* Quantity */}
-                    <input
+                    <input 
+                        
                         name="qteLeft"
                         type="number"
                         placeholder="Qte Left"

@@ -11,6 +11,6 @@ function AdminRoute({ children }) {
     return <Navigate to="/" />;
   }
 
-  return user.role === "Admin" ? children : <Navigate to="/Home" />;
+  return user.role === "admin" || user.role ==="superAdmin" ? children : <Navigate to="/Home" />;
 }
 export default AdminRoute
