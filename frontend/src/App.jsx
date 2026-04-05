@@ -13,10 +13,8 @@ import Notifications from "./pages/Notifications";
 import ProtectedRoute from "./component/ProtectedRoute";
 import SuperAdminRoute from "./component/SuperAdminRoute";
 import AddProductType from "./component/AddProductType";
-import EditProductType from "./component/EditProductType";
 import AddContract from "./component/AddContract";
 import AddProduct from "./component/AddProduct";
-import EditProduct from "./component/EditProduct";
 
 /* Layout */
 function Layout() {
@@ -68,16 +66,6 @@ function App() {
           <Route path="/AddProductType" element={
             <SuperAdminRoute>
               <AddProductType />
-            </SuperAdminRoute>} />
-
-          <Route path="/EditProduct/:id" element={
-            <SuperAdminRoute>
-              <EditProduct />
-            </SuperAdminRoute>} />
-
-          <Route path="/EditProductType/:id" element={
-            <SuperAdminRoute>
-              <EditProductType />
             </SuperAdminRoute>} />
 
           <Route path="/Home" element={<Home />} />

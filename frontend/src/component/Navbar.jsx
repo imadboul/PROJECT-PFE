@@ -9,8 +9,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const linkStyle = ({ isActive }) =>
-    `px-3 py-2 text-lg ${
-      isActive ? "text-orange-500" : "text-white font-medium"
+    `px-3 py-2 text-lg ${isActive ? "text-orange-500" : "text-white font-medium"
     } hover:text-orange-500`;
 
   return (
@@ -46,14 +45,25 @@ export default function Navbar() {
       </div>
 
       {/* Right Side */}
-      <div className="flex items-center gap-4">
-        {/* Desktop Message */}
-        <button className="hidden md:block relative text-xl text-white cursor-pointer hover:text-orange-500">
-          <i className="fa-regular fa-message"></i>
-          <span className="absolute -top-2 -right-2 text-xs bg-orange-500 text-white px-1 rounded-full">
-            3
-          </span>
-        </button>
+      <div className="flex items-center gap-4 ">
+        <div className="hidden md:block">
+          {/* add product for superAdmin */}
+          <NavLink
+            to="/AddProduct"
+            className={linkStyle}>
+            <i className="fa-solid fa-plus"></i>
+          </NavLink>
+
+          {/* Desktop Message */}
+          <button className="relative text-xl text-white cursor-pointer hover:text-orange-500">
+            <i className="fa-regular fa-message"></i>
+            <span className="absolute -top-2 -right-2 text-xs bg-orange-500 text-white px-1 rounded-full">
+              3
+            </span>
+          </button>
+
+
+        </div>
 
         {/* mobile */}
         <button
@@ -62,6 +72,7 @@ export default function Navbar() {
         >
           <i className="fa-solid fa-bars"></i>
         </button>
+
 
         {/* Menu (optional dropdown - language) */}
         <button
@@ -115,6 +126,16 @@ export default function Navbar() {
           >
             Invoices
           </NavLink>
+          {/* add product for superAdmin*/}
+
+          <NavLink
+            onClick={() => setOpen(!open)}
+            to="/AddProduct"
+            className={linkStyle}>
+            <i className="fa-solid fa-plus"></i>
+            Add Product
+          </NavLink>
+
 
           {/* Message */}
 

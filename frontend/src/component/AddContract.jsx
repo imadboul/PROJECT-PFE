@@ -2,118 +2,66 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getProductTypes } from "../context/services/productService";
 import { createContract } from "../context/services/contractService";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 function AddContract() {
-  const [form, setForm] = useState({
-    typeProduct: "",
-    qteGlobale: "",
-    startDate: "",
-    endDate: "",
-  });
-  const Navigate=useNavigate();
-
   const [productTypes, setProductTypes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // added error state
-  const [error, setError] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   // fetch product types
   useEffect(() => {
     const fetchProductTypes = async () => {
       try {
         const res = await getProductTypes("/catalog/productType/");
-
-        console.log(res.data);
-
-        const data =
-          res.data.types ||
-          res.data;
-
+        const data = res.data.types || res.data;
         setProductTypes(Array.isArray(data) ? data : []);
-
       } catch (err) {
-        toast.error("Error fetching product types");
-        console.log(err);
+        toast.error("Error fetching product types", err);
       }
     };
 
     fetchProductTypes();
   }, []);
 
-  // handle input
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    setError(null);
-
-    if (!form.typeProduct || !form.startDate || !form.endDate || !form.qteGlobale) {
-      const msg = "Please fill all required fields";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
-
-    const start = new Date(form.startDate);
-    const end = new Date(form.endDate);
-
-    if (isNaN(start) || isNaN(end)) {
-      const msg = "Invalid date format";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
-
-    const quantity = Number(form.qteGlobale);
-
-    if (isNaN(quantity) || quantity <= 0) {
-      const msg = "Invalid quantity";
-      setError(msg);
-      toast.error(msg);
-      return;
-    }
-
-    const payload = {
-      product_type: Number(form.typeProduct),
-      qte_global: quantity,
-      start_date: start.toISOString(),
-      end_date: end.toISOString(),
-    };
-
+  const onSubmit = async (data) => {
     try {
       setLoading(true);
+
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+
+      if (isNaN(start) || isNaN(end)) {
+        toast.error("Invalid date format");
+        return;
+      }
+
+      const payload = {
+        product_type: Number(data.typeProduct),
+        qte_global: Number(data.qteGlobale),
+        start_date: start.toISOString(),
+        end_date: end.toISOString(),
+      };
 
       await createContract(payload);
 
       toast.success("Contract created successfully");
-      Navigate("/Contracts")
-
-      setForm({
-        typeProduct: "",
-        qteGlobale: "",
-        startDate: "",
-        endDate: "",
-      });
+      navigate("/Contracts");
 
     } catch (error) {
-
       const msg =
         error.response?.data?.detail ||
         JSON.stringify(error.response?.data) ||
         "Failed to create contract";
 
-      setError(msg); 
       toast.error(msg);
-
     } finally {
       setLoading(false);
     }
@@ -122,90 +70,89 @@ function AddContract() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-transparent">
 
-      {/* CARD */}
-      <div className="w-full max-w-lg bg-black/60 rounded-2xl shadow-lg p-6 border border-black/60">
+      <div className="w-full  max-w-xl bg-black/60 rounded-2xl shadow-lg p-6 border border-black/60">
 
         <h2 className="text-2xl font-bold text-center mb-6 text-orange-500">
           Add Contract
         </h2>
 
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
+          {/* Product Type */}
+            <select
+              {...register("typeProduct", { required: "Product type is required" })}
+              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-black"
+            >
+              <option value="">Select Product Type</option>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-              <select
-                id="typeProduct"
-                name="typeProduct"
-                value={form.typeProduct}
-                onChange={handleChange}
-                className="w-full text-xl p-2 text-white focus:text-black border border-black rounded 
-                focus:outline-none focus:ring-2"
-              >
-                <option value="">Select Product Type</option>
-
-                {Array.isArray(productTypes) &&
-                  productTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-              </select>
-          <div className="relative bottom-3">
-            {error && (
+              {productTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+            <div className="relative bottom-3">
+            {errors.typeProduct && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
-                {error}
+                {errors.typeProduct.message}
               </p>
             )}
           </div>
 
           {/* Quantity */}
-          <input
-            type="number"
-            name="qteGlobale"
-            placeholder="Quantity by L"
-            value={form.qteGlobale}
-            onChange={handleChange}
-            className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <div className="relative bottom-3">
-            {error && (
+          
+            <input
+              type="number"
+              placeholder="Quantity by L"
+              {...register("qteGlobale", {
+                required: "Quantity is required",
+                min: { value: 1, message: "Quantity must be greater than 0" }
+              })}
+              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+             
+            <div className="relative bottom-3">
+            {errors.qteGlobale && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
-                {error}
+                {errors.qteGlobale.message}
               </p>
             )}
-          </div>
-
+            </div>
+          
 
           {/* Start Date */}
-          <input
-            type="date"
-            name="startDate"
-            value={form.startDate}
-            onChange={handleChange}
-            className="w-full text-xl text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <div className="relative bottom-3 ">
-            {error && (
+
+            <input
+              type="date"
+              {...register("startDate", {
+                required: "Start date is required"
+              })}
+              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <div className="relative bottom-3">          
+            {errors.startDate && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
-                {error}
+                {errors.startDate.message}
               </p>
             )}
-          </div>
+           </div>
 
           {/* End Date */}
-          <input
-            type="date"
-            name="endDate"
-            value={form.endDate}
-            onChange={handleChange}
-            className="w-full text-xl p-2 text-white rounded border border-black focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <div className="relative bottom-3">
-            {error && (
+          
+            <input
+              type="date"
+              {...register("endDate", {
+                required: "End date is required"
+              })}
+              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+             <div className="relative bottom-3"> 
+            {errors.endDate && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
-                {error}
+                {errors.endDate.message}
               </p>
             )}
-          </div>
+           </div>
 
           {/* BUTTON */}
           <button
