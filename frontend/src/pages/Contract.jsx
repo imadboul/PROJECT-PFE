@@ -137,9 +137,8 @@ export default function ContractsList() {
 
               <p>
                 <strong>State:</strong>{" "}
-                {selectedContract.state === "validated"
-                  ? "Active"
-                  : "Inactive"}
+                {selectedContract.state}
+                  
               </p>
 
               <p>
