@@ -10,6 +10,9 @@ export const createProduct = (data) =>
 export const updateProduct = (id, data) => {
   return api.put(`/catalog/product/${id}/`, data);
 };
+export const updateProductType = (id, data) => {
+  return api.put(`/catalog/productType/${id}/`, data);
+};
 
 export const getProductTypes = () =>
   api.get("/catalog/productType/");
