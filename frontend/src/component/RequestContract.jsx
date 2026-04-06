@@ -3,16 +3,23 @@ import toast from "react-hot-toast";
 import { getProductTypes } from "../context/services/productService";
 import { createContract } from "../context/services/contractService";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import Select from "react-select";
 
 function RequestContract() {
   const [productTypes, setProductTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const options = productTypes.map(type => ({
+    value: type.id,
+    label: type.name
+  }));
+
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm();
 
@@ -42,6 +49,10 @@ function RequestContract() {
         toast.error("Invalid date format");
         return;
       }
+      if (start.getTime() >= end.getTime()) {
+        toast.error("start date must be before end date");
+        return;
+      }
 
       const payload = {
         product_type: Number(data.typeProduct),
@@ -55,13 +66,8 @@ function RequestContract() {
       toast.success("Contract created successfully");
       navigate("/Contracts");
 
-    } catch (error) {
-      const msg =
-        error.response?.data?.detail ||
-        JSON.stringify(error.response?.data) ||
-        "Failed to create contract";
-
-      toast.error(msg);
+    } catch  {
+      toast.error(data?.error);
     } finally {
       setLoading(false);
     }
@@ -79,80 +85,125 @@ function RequestContract() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
 
           {/* Product Type */}
-            <select
-              {...register("typeProduct", { required: "Product type is required" })}
-              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500 focus:text-black"
-            >
-              <option value="">Select Product Type</option>
+          <Controller
+            name="productType"
+            control={control}
+            rules={{ required: "Product type is required" }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                options={options}
+                placeholder="Select Product Type"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    backgroundColor: "rgba(7, 7, 7, 0.11)",
+                    borderColor: state.isFocused ? "#f97316" : "#000",
+                    boxShadow: "none",
+                    fontSize: "20px",
+                    "&:hover": {
+                      border:"1px solid #f97316"
+                    }
+                  }),
 
-              {productTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-            <div className="relative bottom-3">
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "rgba(0, 0, 0, 0.66)"
+                  }),
+
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isFocused
+                      ? "rgba(247, 77, 9, 0.96)"
+                      : "rgba(0, 0, 0, 0.66)",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontSize:"20px",
+                    fontWeight:"400",
+                    border:"1px solid #000",
+                    "&:active": {
+                      backgroundColor: "#f97316"
+                    }
+                  }),
+
+                  singleValue: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+
+                  placeholder: (base) => ({
+                    ...base,
+                    color: "#fff",
+
+                  })
+                }}
+                onChange={(selected) => field.onChange(selected.value)}
+                value={options.find(opt => opt.value === field.value)}
+              />
+            )}
+          />
+          <div className="relative bottom-3">
             {errors.typeProduct && (
-              <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
                 {errors.typeProduct.message}
               </p>
             )}
           </div>
 
           {/* Quantity */}
-          
-            <input
-              type="number"
-              placeholder="Quantity by L"
-              {...register("qteGlobale", {
-                required: "Quantity is required",
-                min: { value: 1, message: "Quantity must be greater than 0" }
-              })}
-              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-             
-            <div className="relative bottom-3">
+
+          <input
+            type="number"
+            placeholder="Quantity by L"
+            {...register("qteGlobale", {
+              required: "Quantity is required",
+              min: { value: 1, message: "Quantity must be greater than 0" }
+            })}
+            className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+
+          <div className="relative bottom-3">
             {errors.qteGlobale && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
                 {errors.qteGlobale.message}
               </p>
             )}
-            </div>
-          
+          </div>
+
 
           {/* Start Date */}
 
-            <input
-              type="date"
-              {...register("startDate", {
-                required: "Start date is required"
-              })}
-              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            <div className="relative bottom-3">          
+          <input
+            type="date"
+            {...register("startDate", {
+              required: "Start date is required"
+            })}
+            className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <div className="relative bottom-3">
             {errors.startDate && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
                 {errors.startDate.message}
               </p>
             )}
-           </div>
+          </div>
 
           {/* End Date */}
-          
-            <input
-              type="date"
-              {...register("endDate", {
-                required: "End date is required"
-              })}
-              className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-             <div className="relative bottom-3"> 
+
+          <input
+            type="date"
+            {...register("endDate", {
+              required: "End date is required"
+            })}
+            className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <div className="relative bottom-3">
             {errors.endDate && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
                 {errors.endDate.message}
               </p>
             )}
-           </div>
+          </div>
 
           {/* BUTTON */}
           <button

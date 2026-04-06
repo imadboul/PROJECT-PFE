@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { getProductTypes, createProduct } from "../context/services/productService";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import Select from "react-select";
 import { NavLink } from "react-router-dom";
 
 function AddProduct() {
@@ -12,9 +13,15 @@ function AddProduct() {
     register,
     handleSubmit,
     reset,
+    control,
     watch,
     formState: { errors },
   } = useForm();
+
+  const options = productTypes.map(type => ({
+    value: type.id,
+    label: type.name
+  }));
 
   const selectedType = watch("productType");
 
@@ -26,7 +33,7 @@ function AddProduct() {
         const data = res.data.types || res.data;
         setProductTypes(Array.isArray(data) ? data : []);
       } catch (err) {
-        toast.error("Error fetching product types",err);
+        toast.error("Error fetching product types", err);
       }
     };
 
@@ -55,8 +62,8 @@ function AddProduct() {
         error.response?.data?.error
           ? JSON.stringify(error.response.data.error)
           : error.response?.data?.detail ||
-            JSON.stringify(error.response?.data) ||
-            "Error creating product";
+          JSON.stringify(error.response?.data) ||
+          "Error creating product";
 
       toast.error(msg);
     } finally {
@@ -128,20 +135,64 @@ function AddProduct() {
 
           {/* Product Type */}
           <div className="flex items-center gap-4">
-            <select
-              {...register("productType", {
-                required: "Product type is required",
-              })}
-              className="w-full text-xl p-2 border border-black rounded"
-            >
-              <option value="">Select Product Type</option>
+            {/* Product Type */}
+            <Controller
+              name="productType"
+              control={control}
+              rules={{ required: "Product type is required" }}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  options={options}
+                  placeholder="Select Product Type"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      backgroundColor: "rgba(7, 7, 7, 0.11)",
+                      borderColor: state.isFocused ? "#f97316" : "#000",
+                      boxShadow: "none",
+                      fontSize: "20px",
+                      "&:hover": {
+                        border: "1px solid #f97316"
+                      }
+                    }),
 
-              {productTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
+                    menu: (base) => ({
+                      ...base,
+                      backgroundColor: "rgba(0, 0, 0, 0.66)"
+                    }),
+
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isFocused
+                        ? "rgba(247, 77, 9, 0.96)"
+                        : "rgba(0, 0, 0, 0.66)",
+                      color: "#fff",
+                      cursor: "pointer",
+                      fontSize: "20px",
+                      fontWeight: "400",
+                      border: "1px solid #000",
+                      "&:active": {
+                        backgroundColor: "#f97316"
+                      }
+                    }),
+
+                    singleValue: (base) => ({
+                      ...base,
+                      color: "#fff",
+                    }),
+
+                    placeholder: (base) => ({
+                      ...base,
+                      color: "#fff",
+
+                    })
+                  }}
+                  onChange={(selected) => field.onChange(selected.value)}
+                  value={options.find(opt => opt.value === field.value)}
+                />
+              )}
+            />
 
             {/* Add Type */}
             <NavLink to="/AddProductType" className="text-orange-400 text-xl">

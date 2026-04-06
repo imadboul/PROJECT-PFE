@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Sign from "./pages/Sign";
 import ContractsList from "./pages/Contract"
-import SoldList from "./pages/Sold";
+import BalanceList from "./pages/Balance";
 import Invoice from "./pages/Invoice";
 import Navbar from "./component/Navbar";
 import Bills from "./pages/Bills";
@@ -14,6 +14,7 @@ import ProtectedRoute from "./component/ProtectedRoute";
 import SuperAdminRoute from "./component/SuperAdminRoute";
 import AddProductType from "./component/AddProductType";
 import RequestContract from "./component/RequestContract";
+import RequestPayment from "./component/RequestPayment";
 import AddProduct from "./component/AddProduct";
 import EditProductType from "./component/EditProductType";
 
@@ -81,11 +82,12 @@ function App() {
 
           <Route path="/Home" element={<Home />} />
           <Route path="/Contracts" element={<ContractsList />} />
-          <Route path="/Sold" element={<SoldList />} />
+          <Route path="/Balance" element={<BalanceList />} />
           <Route path="/Invoices" element={<Invoice />} />
           <Route path="/Bills" element={<Bills />} />
           <Route path="/Notifications" element={<Notifications />} />
-          <Route path="/AddContract" element={<RequestContract />} />
+          <Route path="/RequestContract" element={<RequestContract />} />
+          <Route path="/RequestPayment" element={<RequestPayment />} />
         </Route>
       </Routes>
     </div>
