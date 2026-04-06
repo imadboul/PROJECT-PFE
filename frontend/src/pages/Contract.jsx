@@ -63,7 +63,7 @@ export default function ContractsList() {
           </button>
 
           <NavLink
-            to="/AddContract"
+            to="/RequestContract"
             className="border border-white text-white px-4 py-2 rounded hover:bg-white/10 mb-4 cursor-pointer"
           >
             Request new contract

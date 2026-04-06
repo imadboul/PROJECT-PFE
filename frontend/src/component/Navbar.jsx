@@ -25,8 +25,8 @@ export default function Navbar() {
         <NavLink to="/Contracts" className={linkStyle}>
           Contracts
         </NavLink>
-        <NavLink to="/Sold" className={linkStyle}>
-          Sold
+        <NavLink to="/Balance" className={linkStyle}>
+          Balance
         </NavLink>
         <NavLink to="/Bills" className={linkStyle}>
           Bills

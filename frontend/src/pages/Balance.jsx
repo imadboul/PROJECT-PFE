@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
-export default function SoldList() {
+
+export default function BalanceList() {
   const [selectedSold, setSelectedSold] = useState(null);
 
   const sales = [
@@ -30,8 +32,14 @@ export default function SoldList() {
 
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-white text-xl font-bold">Sales</h1>
+          <h1 className="text-white text-xl font-bold">Balance</h1>
         </div>
+        <NavLink
+          to="/RequestPayment"
+          className="border border-white flex w-1/4 text-white px-4 py-2 rounded hover:bg-white/10 mb-4 cursor-pointer"
+        >
+          Request new Payment
+        </NavLink>
 
         {/* Cards */}
         {sales.map((s) => {
