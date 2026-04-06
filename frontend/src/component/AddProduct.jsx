@@ -10,7 +10,7 @@ function AddProduct() {
   const [loading, setLoading] = useState(false);
 
   const unitOptions = [
-    { value: "liter", label: "Liter" },
+    { value: "litre", label: "Litre" },
     { value: "kilogram", label: "Kilogram" },
   ];
 
