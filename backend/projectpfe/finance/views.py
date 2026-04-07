@@ -33,7 +33,7 @@ def payments(request):
             
             paymennt = serializer.save(client_id = client_id)
             
-            notify_all_admin('validate payment', f' validate payment number {paymennt.id} done by {paymennt.client} ','http://localhost:5173/Balance') # type: ignore
+            notify_all_admin('validate payment', f' validate payment number {paymennt.id} done by {paymennt.client} ',f'http://localhost:5173/Payment/{paymennt.id}') # type: ignore
             
             return Response ( { "message" : 'request submitted wait for validation'}, status=status.HTTP_200_OK )
         else:
@@ -51,6 +51,15 @@ def getbalance(request):
         balcences = balanceserializer(Balance.objects.all(), many = True )
         return Response ( { "balances" : balcences.data }, status=status.HTTP_200_OK )
     
+@api_view(['GET'])
+@jwt_must
+def get_payment(request,id):
+    try:
+        payment = paymentreadserializer(Payment.objects.get(id = id))
+        return Response ( { "contract" : payment.data }, status=status.HTTP_200_OK )
+    except Payment.DoesNotExist:
+        return Response ( { "error" : "does not exist"}, status=status.HTTP_400_BAD_REQUEST )
+    
 @api_view(['POST'])
 @jwt_must
 def validatePayment(request):
@@ -63,9 +72,9 @@ def validatePayment(request):
         payment.state = serializer.validated_data['state'] # type: ignore
         payment.validated_by_id = request.user_id # type: ignore
         
-        payment.save()
+        p = payment.save()
         
-        notify_a_client(payment.client_id,'PAYMENT UPDATE', f'your payment number { payment.id } has beed {payment.state} by a super admin','http://localhost:5173/Balance') # type: ignore
+        notify_a_client(payment.client_id,'PAYMENT UPDATE', f'your payment number { payment.id } has beed {payment.state} by a super admin',f'http://localhost:5173/Payment/{p.id}') # type: ignore
         
         if serializer.validated_data['state'] == 'validated': # type: ignore
             balance, create = Balance.objects.get_or_create(client = payment.client , productType = payment.productType)

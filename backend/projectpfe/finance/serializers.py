@@ -29,7 +29,17 @@ class paymentserializer(serializers.Serializer):
               raise serializers.ValidationError(" payment does not exist or already validated or rejected")
           return data
         
-        
+
+class paymentreadserializer(serializers.ModelSerializer):
+    productType = serializers.CharField(source="productType.name")
+    client = serializers.CharField(source ="client.lastName")
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+    
+    
+    
 class paymentcreateserializer(serializers.ModelSerializer):
     
     class Meta:

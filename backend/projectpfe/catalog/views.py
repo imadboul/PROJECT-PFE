@@ -147,7 +147,7 @@ def contract(request):
         if serializer.is_valid():
         
             contract = serializer.save(client_id= client_id)
-            notify_all_superadmin('validate contract',f'contract number ({contract.id})','http://localhost:5173/Contracts') # type: ignore
+            notify_all_superadmin('validate contract',f'contract number ({contract.id})',f'http://localhost:5173/Contracts/{contract.id}') # type: ignore
             return Response({
                 "message": " done wait for validation",
                 "contract": contractserializer(contract).data
@@ -187,13 +187,26 @@ def validatecontract(request):
         contract.validated_at = timezone.now()
         contract.validated_by_id = request.user_id # type: ignore
         
-        contract.save()
+        c = contract.save()
         
-        notify_a_client(contract.client_id,'CONTRACT UPDATE', f'your contract number{ contract.id } has beed {contract.state} by a super admin','http://localhost:5173/Contracts') # type: ignore
+        notify_a_client(contract.client_id,'CONTRACT UPDATE', f'your contract number{ contract.id } has beed {contract.state} by a super admin',f'http://localhost:5173/Contracts/{c.id}') # type: ignore
         
         return Response ( { "message" : f"contract {contract.state} "}, status=status.HTTP_200_OK )
     else:
         return Response ( { "error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST )
+
+@api_view(['GET'])
+@jwt_must
+def get_contract(request,id):
+    try:
+        contract = contractreadserializer(Contract.objects.get(id = id))
+        return Response ( { "contract" : contract.data }, status=status.HTTP_200_OK )
+    except Contract.DoesNotExist:
+        return Response ( { "error" : "does not exist"}, status=status.HTTP_400_BAD_REQUEST )
+        
+        
+        
+        
     
 @api_view(['GET'])
 @jwt_must
