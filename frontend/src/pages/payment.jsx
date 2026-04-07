@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { getPayments } from "../context/services/BalanceService";
+import {
+  getPayments,
+  rejectPayment,
+  validatePayment,
+} from "../context/services/BalanceService";
 import { getProductTypes } from "../context/services/productService";
 import toast from "react-hot-toast";
 
@@ -14,6 +18,7 @@ export default function PaymentsList() {
   const location = useLocation();
   const selectedProductType = location.state?.productType;
 
+  // ✅ Fetch data
   const fetchPayments = async () => {
     try {
       setLoading(true);
@@ -21,11 +26,14 @@ export default function PaymentsList() {
       const resP = await getPayments();
       const resT = await getProductTypes();
 
-      setPayments(resP.data.payments || resP.data);
-      setProductTypes(resT.data.types || resT.data);
+      const paymentsData = resP.data.payments || resP.data;
+      const typesData = resT.data.types || resT.data;
 
+      setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+      setProductTypes(Array.isArray(typesData) ? typesData : []);
     } catch (err) {
-      toast.error("Failed to load payments", err);
+      console.log(err);
+      toast.error("Failed to load payments");
     } finally {
       setLoading(false);
     }
@@ -35,10 +43,38 @@ export default function PaymentsList() {
     fetchPayments();
   }, []);
 
+  // ✅ Validate
+  const handleValidate = async (id) => {
+    try {
+      await validatePayment(id);
+      toast.success("Payment validated");
+      setSelectedPayment(null);
+      fetchPayments();
+    } catch (err) {
+      console.log(err);
+      toast.error("Validation failed");
+    }
+  };
+
+  // ✅ Reject
+  const handleReject = async (id) => {
+    try {
+      await rejectPayment(id);
+      toast.success("Payment rejected");
+      setSelectedPayment(null);
+      fetchPayments();
+    } catch (err) {
+      console.log(err);
+      toast.error("Rejection failed");
+    }
+  };
+
+  // ✅ Toggle filter
   const changeStatus = () => {
     setShowValidated((prev) => !prev);
   };
 
+  // ✅ Format date
   const formatDate = (date) => {
     if (!date) return "—";
     return new Date(date).toLocaleString("en-GB", {
@@ -50,11 +86,13 @@ export default function PaymentsList() {
     });
   };
 
+  // ✅ Get product name
   const getProductName = (id) => {
     const type = productTypes.find((p) => p.id === id);
     return type ? type.name : id;
   };
 
+  // ✅ Filter payments
   const filteredPayments = payments.filter((p) => {
     const state = p.state?.toLowerCase();
 
@@ -70,7 +108,9 @@ export default function PaymentsList() {
   });
 
   if (loading) {
-    return <div className="text-white text-center mt-10">Loading...</div>;
+    return (
+      <div className="text-white text-center mt-10">Loading...</div>
+    );
   }
 
   return (
@@ -78,6 +118,8 @@ export default function PaymentsList() {
       <div className="w-full max-w-3xl flex flex-col gap-4">
 
         <h1 className="text-white text-xl font-bold">Payments</h1>
+
+        {/* Controls */}
         <div className="flex justify-between items-center">
           <button
             className="text-white text-2xl font-bold hover:text-orange-500"
@@ -88,11 +130,13 @@ export default function PaymentsList() {
 
           <button
             onClick={changeStatus}
-            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10 mb-4"
+            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10"
           >
             {showValidated ? "Show Pending" : "Show Validated"}
           </button>
         </div>
+
+        {/* List */}
         {filteredPayments.map((p) => (
           <div
             key={p.id}
@@ -123,13 +167,23 @@ export default function PaymentsList() {
                   <strong>Bank:</strong> {p.bankName}
                 </p>
 
-                <p className="text-green-500 text-md font-bold">
-                  <strong className="text-white ">Amount:</strong> {p.amount} DA
+                <p className="text-green-500 font-bold">
+                  <strong className="text-white">Amount:</strong>{" "}
+                  {p.amount} DA
                 </p>
               </div>
 
-              <p className={p.state === "validated" ? "text-green-500" : "text-yellow-500"}>
-                <strong className="text-white">State:</strong> {p.state}
+              <p
+                className={
+                  p.state === "validated"
+                    ? "text-green-500"
+                    : p.state === "rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                }
+              >
+                <strong className="text-white">State:</strong>{" "}
+                {p.state}
               </p>
 
             </div>
@@ -150,16 +204,50 @@ export default function PaymentsList() {
             </button>
 
             <div className="space-y-2 text-sm">
+
               <p><strong>Product:</strong> {getProductName(selectedPayment.productType)}</p>
               <p><strong>Transfer:</strong> {formatDate(selectedPayment.transferDate)}</p>
               <p><strong>Created:</strong> {formatDate(selectedPayment.created_at)}</p>
               <p><strong>Bank:</strong> {selectedPayment.bankName}</p>
               <p><strong>Amount:</strong> {selectedPayment.amount} DA</p>
-              <p><strong>State:</strong> {selectedPayment.state}</p>
-              <p><strong>Client:</strong> {selectedPayment.client}</p>
-              <p><strong>Validated by:</strong> {selectedPayment.validated_by || "—"}</p>
-            </div>
 
+              <p className={selectedPayment.state === "validated" ? "text-green-500" : "text-yellow-500"}>
+                <strong className="text-white">State:</strong> {selectedPayment.state}
+              </p>
+
+              <p><strong>Client:</strong> {selectedPayment.client}</p>
+
+
+              {/* Actions */}
+              <div className="flex justify-between gap-4 mt-3">
+                <p><strong>Validated by:</strong> {selectedPayment.validated_by || "—"}</p>
+                <div className="flex gap-4">
+                  {selectedPayment.state !== "validated" && (
+                    <>
+                      <button
+                        onClick={() => handleValidate(selectedPayment.id)}
+                        className="flex items-center justify-center cursor-pointer w-7 h-7 rounded-full 
+                    bg-green-700 hover:bg-green-800 
+                    text-white transition"
+                      >
+                        <i className="fa-solid fa-check text-sm"></i>
+                      </button>
+
+                      <button
+                        onClick={() => handleReject(selectedPayment.id)}
+                        className="flex items-center justify-center cursor-pointer w-7 h-7 rounded-full 
+                    bg-red-700 hover:bg-red-800 
+                    text-white transition"
+                      >
+                        <i className="fa-solid fa-xmark text-sm"></i>
+                      </button>
+                    </>
+                  )}
+
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}

@@ -55,12 +55,13 @@ export default function Navbar() {
           </NavLink>
 
           {/* Desktop Message */}
-          <button className="relative text-xl text-white cursor-pointer hover:text-orange-500">
+          <NavLink
+           to="/notifications" className={linkStyle}>
             <i className="fa-regular fa-message"></i>
-            <span className="absolute -top-2 -right-2 text-xs bg-orange-500 text-white px-1 rounded-full">
+            <span className="absolute  text-xs bg-orange-500 text-white px-1 rounded-full">
               3
             </span>
-          </button>
+          </NavLink>
 
 
         </div>

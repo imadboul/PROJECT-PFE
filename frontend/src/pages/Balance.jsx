@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getBalances } from "../context/services/BalanceService";
 import { getProductTypes } from "../context/services/productService";
 import toast from "react-hot-toast";
@@ -8,14 +8,17 @@ export default function BalanceList() {
   const [balances, setBalances] = useState([]);
   const [productTypes, setProductTypes] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const resB = await getBalances();
+        console.log("Balance response:", resB.data);
         const resP = await getProductTypes();
 
-        setBalances(resB.data.balances || []);
+        setBalances(resB.data.balances ||resB.data|| []);
         setProductTypes(resP.data.types || []);
       } catch (err) {
         console.log(err);
@@ -24,7 +27,7 @@ export default function BalanceList() {
     };
 
     fetchData();
-  }, []);
+  }, [location.key]);
 
   const getProductName = (id) => {
     const type = productTypes.find((p) => p.id === id);
