@@ -34,6 +34,7 @@ export default function Login() {
     } else {
       setAuthError(result.error);
       toast.error("Login failed");
+      navigate("/");
     }
 
     setLoading(false);
