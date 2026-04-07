@@ -66,7 +66,7 @@ function RequestContract() {
       toast.success("Contract created successfully");
       navigate("/Contracts");
 
-    } catch  {
+    } catch {
       toast.error(data?.error);
     } finally {
       setLoading(false);
@@ -78,6 +78,12 @@ function RequestContract() {
 
       <div className="w-full  max-w-xl bg-black/60 rounded-2xl shadow-lg p-6 border border-black/60">
 
+        <button
+          className="placeholder-white text-2xl text-white font-bold hover:text-orange-500"
+          onClick={() => window.history.back()}
+        >
+          <i className="fa-solid fa-arrow-left"></i>
+        </button>
         <h2 className="text-2xl font-bold text-center mb-6 text-orange-500">
           Request Contract
         </h2>
@@ -102,7 +108,7 @@ function RequestContract() {
                     boxShadow: "none",
                     fontSize: "20px",
                     "&:hover": {
-                      border:"1px solid #f97316"
+                      border: "1px solid #f97316"
                     }
                   }),
 
@@ -118,9 +124,9 @@ function RequestContract() {
                       : "rgba(0, 0, 0, 0.66)",
                     color: "#fff",
                     cursor: "pointer",
-                    fontSize:"20px",
-                    fontWeight:"400",
-                    border:"1px solid #000",
+                    fontSize: "20px",
+                    fontWeight: "400",
+                    border: "1px solid #000",
                     "&:active": {
                       backgroundColor: "#f97316"
                     }
@@ -142,10 +148,10 @@ function RequestContract() {
               />
             )}
           />
-          <div className="relative bottom-3">
-            {errors.typeProduct && (
+          <div className="relative bottom-4 mb-8">
+            {errors.productType && (
               <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
-                {errors.typeProduct.message}
+                {errors.productType.message}
               </p>
             )}
           </div>
@@ -162,9 +168,9 @@ function RequestContract() {
             className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
 
-          <div className="relative bottom-3">
+          <div className="relative bottom-4">
             {errors.qteGlobale && (
-              <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
                 {errors.qteGlobale.message}
               </p>
             )}
@@ -180,9 +186,9 @@ function RequestContract() {
             })}
             className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
-          <div className="relative bottom-3">
+          <div className="relative bottom-4">
             {errors.startDate && (
-              <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
                 {errors.startDate.message}
               </p>
             )}
@@ -197,9 +203,9 @@ function RequestContract() {
             })}
             className="w-full text-xl placeholder-white text-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
-          <div className="relative bottom-3">
+          <div className="relative bottom-4">
             {errors.endDate && (
-              <p className="absolute top-0 left-0 right-0 text-red-500 text-xs text-center mt-1">
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
                 {errors.endDate.message}
               </p>
             )}
