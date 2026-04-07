@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getNotifications, markNotificationAsViewed } from "../context/services/notificationService";
 
 export default function NotificationsPage() {
   const [notification, setNotification] = useState([]);
   const location = useLocation();
+  const navigate = useNavigate()
 
   // Fetch notifications
   useEffect(() => {
@@ -32,23 +33,28 @@ export default function NotificationsPage() {
     );
   }, [notification]);
 
-  // Mark as viewed
   const handleMarkAsViewed = async (notif) => {
-    try {
-      await markNotificationAsViewed(notif.id);
+  try {
+    
+    await markNotificationAsViewed(notif.id);
 
    
-      setNotification((prev) =>
-        prev.map((n) =>
-          n.id === notif.id ? { ...n, viewed: true } : n
-        )
-      );
+    setNotification((prev) =>
+      prev.map((n) =>
+        n.id === notif.id ? { ...n, viewed: true } : n
+      )
+    );
 
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to update notification");
+   
+    if (notif.link) {
+      navigate(notif.link);
     }
-  };
+
+  } catch (err) {
+    console.log(err);
+    toast.error("Failed to update notification");
+  }
+};
 
   return (
     <div className="p-6 flex justify-center relative z-10">
