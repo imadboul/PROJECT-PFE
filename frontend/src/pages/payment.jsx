@@ -99,6 +99,7 @@ export default function PaymentsList() {
     const matchState = showValidated
       ? state === "validated"
       : state === "pending";
+      console.log(payments.map(p => p.state));
 
     const matchProduct = selectedProductType
       ? Number(p.productType) === Number(selectedProductType)
