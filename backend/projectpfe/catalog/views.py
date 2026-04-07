@@ -187,9 +187,9 @@ def validatecontract(request):
         contract.validated_at = timezone.now()
         contract.validated_by_id = request.user_id # type: ignore
         
-        c = contract.save()
+        contract.save()
         
-        notify_a_client(contract.client_id,'CONTRACT UPDATE', f'your contract number{ contract.id } has beed {contract.state} by a super admin',f'http://localhost:5173/Contracts/{c.id}') # type: ignore
+        notify_a_client(contract.client_id,'CONTRACT UPDATE', f'your contract number{ contract.id } has beed {contract.state} by a super admin',f'http://localhost:5173/Contracts/{contract.id}') # type: ignore
         
         return Response ( { "message" : f"contract {contract.state} "}, status=status.HTTP_200_OK )
     else:

@@ -72,9 +72,9 @@ def validatePayment(request):
         payment.state = serializer.validated_data['state'] # type: ignore
         payment.validated_by_id = request.user_id # type: ignore
         
-        p = payment.save()
+        payment.save()
         
-        notify_a_client(payment.client_id,'PAYMENT UPDATE', f'your payment number { payment.id } has beed {payment.state} by a super admin',f'http://localhost:5173/Payment/{p.id}') # type: ignore
+        notify_a_client(payment.client_id,'PAYMENT UPDATE', f'your payment number { payment.id } has beed {payment.state} by a super admin',f'http://localhost:5173/Payment/{payment.id}') # type: ignore
         
         if serializer.validated_data['state'] == 'validated': # type: ignore
             balance, create = Balance.objects.get_or_create(client = payment.client , productType = payment.productType)

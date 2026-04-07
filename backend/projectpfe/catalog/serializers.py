@@ -141,9 +141,9 @@ class contractserializer(serializers.Serializer):
 
     def validate(self, data):
         try:
-              type = Contract.objects.get(id = data.get('id'))
+              type = Contract.objects.get(id = data.get('id'), state = 'pending')
         except Contract.DoesNotExist:
-            raise serializers.ValidationError("does not exist")
+            raise serializers.ValidationError("does not exist or already validated or rejected")
         return data
     
 
