@@ -33,7 +33,7 @@ def payments(request):
             
             paymennt = serializer.save(client_id = client_id)
             
-            notify_all_admin('validate payment', f' validate payment number {paymennt.id} done by {paymennt.client} ','http://localhost:5173/Balance') # type: ignore
+            notify_all_admin('validate payment', f' validate payment number {paymennt.id} done by {paymennt.client} ','http://localhost:5173/payment') # type: ignore
             
             return Response ( { "message" : 'request submitted wait for validation'}, status=status.HTTP_200_OK )
         else:

@@ -4,13 +4,16 @@ import { BrowserRouter } from "react-router-dom";
 import App from './App.jsx'
 import AuthProvider from './context/AuthContext.jsx';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { NotificationProvider } from './context/NotificationContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-      <App />
-    </AuthProvider>
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>
 )

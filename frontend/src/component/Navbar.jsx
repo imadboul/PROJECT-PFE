@@ -1,16 +1,20 @@
 import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function Navbar() {
+
   const { logout, user } = useContext(AuthContext);
 
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  const { notifications } = useNotifications();
   const linkStyle = ({ isActive }) =>
     `px-3 py-2 text-lg ${isActive ? "text-orange-500" : "text-white font-medium"
     } hover:text-orange-500`;
+
+  const unreadCount = notifications.filter(n => !n.viewed).length;
 
   return (
     <nav className="px-6 py-3 flex items-center justify-between">
@@ -54,13 +58,14 @@ export default function Navbar() {
             <i className="fa-solid fa-plus"></i>
           </NavLink>
 
-          {/* Desktop Message */}
-          <NavLink
-           to="/notifications" className={linkStyle}>
+          <NavLink to="/notifications" className={linkStyle}>
             <i className="fa-regular fa-message"></i>
-            <span className="absolute  text-xs bg-orange-500 text-white px-1 rounded-full">
-              3
-            </span>
+
+            {unreadCount > 0 && (
+              <span className="absolute text-xs bg-orange-500 text-white px-1 rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </NavLink>
 
 

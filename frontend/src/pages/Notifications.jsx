@@ -1,37 +1,27 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getNotifications, markNotificationAsViewed } from "../context/services/notificationService";
+import { markNotificationAsViewed } from "../context/services/notificationService";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function NotificationsPage() {
-  const [notification, setNotification] = useState([]);
+  const { notifications, setNotifications, fetchNotifications } = useNotifications();
+
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const resN = await getNotifications();
-        const data = resN.data.notifications;
-        setNotification(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.log(err);
-        toast.error("Error fetching data");
-      }
-    };
-
-    fetchData();
+    fetchNotifications();
   }, [location.key]);
 
   const sortedNotifications = useMemo(() => {
-    if (!Array.isArray(notification)) return [];
+    if (!Array.isArray(notifications)) return [];
 
-    return [...notification].sort(
+    return [...notifications].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     );
-  }, [notification]);
+  }, [notifications]);
 
-  // normalize link
   const normalizeLink = (link) => {
     if (!link) return null;
 
@@ -46,19 +36,20 @@ export default function NotificationsPage() {
     try {
       await markNotificationAsViewed(notif.id);
 
-      setNotification((prev) =>
+      // ✅ update global state (important)
+      setNotifications((prev) =>
         prev.map((n) =>
           n.id === notif.id ? { ...n, viewed: true } : n
         )
       );
 
       const normalizedLink = normalizeLink(notif.link);
+
       if (normalizedLink) {
         if (normalizedLink.startsWith("http")) {
-          // eslint-disable-next-line react-hooks/immutability
-          window.location.href = normalizedLink; // external
+          window.location.assign(normalizedLink);
         } else {
-          navigate(normalizedLink); // internal
+          navigate(normalizedLink);
         }
       }
     } catch (err) {
