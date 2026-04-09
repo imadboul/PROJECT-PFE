@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'catalog',
     'finance',
     'Orders_Manage',
+    'order_client',
     'Tax_Service',
     'Invoices',
     

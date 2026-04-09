@@ -1,14 +1,13 @@
-
-from django.shortcuts import render
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
-from .models import *
+from user.models import Client
+from .models import Order,States,OrderProduct
 from .serializers import *
 from rest_framework import generics
 from django.db import transaction
-from rest_framework.decorators import api_view
-from catalog.models import Contract,Client
+from .filters import FilterOrderProduct,FilterOrder,FilterOrderAll
 from django.utils.decorators import method_decorator
 from user.wraps import *
 from user.views import notify_all_admin , notify_a_client
@@ -34,10 +33,10 @@ def order(request):
     
     if request.method == 'GET':
         if request.role == 'client':
-            orders = OrderreadSerializer(Orderclient.objects.filter(client_id = request.user_id), many= True)
+            orders = OrderreadSerializer(Order.objects.filter(client_id = request.user_id), many= True)
             return Response({"orders": orders.data}, status=status.HTTP_200_OK)
         else:
-            orders = OrderreadSerializer(Orderclient.objects.all(), many= True)
+            orders = OrderreadSerializer(Order.objects.all(), many= True)
             return Response({"orders": orders.data}, status=status.HTTP_200_OK)
     
     
@@ -65,19 +64,42 @@ def validateorder(request):
     except Exception as e :
         return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
  
-   
+    
+    
+
+        
+@api_view(['POST'])
+@jwt_must
+def RectificativeOrder(request):
+    
+    
+    try:
+        with transaction.atomic():
+            serializer = RectificativeOrderSerializer(data = request.data, context = {'user_id': request.user_id})
+                         
+    
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Order created successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    except Exception as e :
+        return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
+        
+     
 @api_view(['GET'])
 @jwt_must
 def get_order(request,id):
     try:
         if request.role == 'client':
-            order = OrderreadSerializer(Orderclient.objects.get(id=id,client_id= request.user_id))
+            order = OrderreadSerializer(Order.objects.get(id=id,client_id= request.user_id))
             return Response({"orders": order.data}, status=status.HTTP_200_OK)
         else:
-            order = OrderreadSerializer(Orderclient.objects.get(id=id))
+            order = OrderreadSerializer(Order.objects.get(id=id))
             return Response({"orders": order.data}, status=status.HTTP_200_OK)
             
-    except Orderclient.DoesNotExist:
+    except Order.DoesNotExist:
         return Response({'error': 'does not exist or you do not have permission' }, status=status.HTTP_400_BAD_REQUEST)
         
         
