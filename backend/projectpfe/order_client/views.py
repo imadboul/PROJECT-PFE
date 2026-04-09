@@ -1,30 +1,57 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 from rest_framework import status
 from user.models import Client
 from .models import Order,States,OrderProduct
+<<<<<<< HEAD:backend/projectpfe/order_client/views.py
 from .serializers import OrderSerializer,ValidateOrdersSerializer,RectificativeOrderSerializer,OrderProductFilterSerializerOne,OrderFilterSerializerOne,OrderFilterSerializerTow,ClientFilterSerializerOne
+=======
+from .serializers import *
+>>>>>>> 194df305d46839cb162395484a3dec9965a2e5f6:backend/projectpfe/Orders_Manage/views.py
 from rest_framework import generics
 from django.db import transaction
 from .filters import FilterOrderProduct,FilterOrder,FilterOrderAll
+<<<<<<< HEAD:backend/projectpfe/order_client/views.py
 from Tax_Service.taxCalcul import mains_balances
 import logging
+=======
+from django.utils.decorators import method_decorator
+from user.wraps import *
+from user.views import notify_all_admin , notify_a_client
+>>>>>>> 194df305d46839cb162395484a3dec9965a2e5f6:backend/projectpfe/Orders_Manage/views.py
 
 logging=logging.getLogger(__name__)
 
 
-class OrderCreateView(generics.CreateAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    def create(self,request,*args,**kwargs):
-        try:
-            serializer=self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response({'data':'Order created successfully'},status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({  "message": "Failed to create order", "error": str(e)},status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST','GET'])
+@jwt_must
+def order(request):
+    if request.method == 'POST':
+        try:
+            serializer = OrderSerializer(data=request.data, context = {'user_id': request.user_id})
+            if serializer.is_valid():
+                order = serializer.save(client_id=request.user_id)  # type: ignore
+                notify_all_admin('VALIDATE AN ORDER',f'validate order {order.id}','') # type: ignore
+                return Response({'data': 'Order created successfully wait for validation'}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'errorssss': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    if request.method == 'GET':
+        if request.role == 'client':
+            orders = OrderreadSerializer(Order.objects.filter(client_id = request.user_id), many= True)
+            return Response({"orders": orders.data}, status=status.HTTP_200_OK)
+        else:
+            orders = OrderreadSerializer(Order.objects.all(), many= True)
+            return Response({"orders": orders.data}, status=status.HTTP_200_OK)
+    
+    
+
+<<<<<<< HEAD:backend/projectpfe/order_client/views.py
 class OrderValidateView(generics.UpdateAPIView):
     
     def update(self, request, *args, **kwargs):
@@ -46,20 +73,35 @@ class OrderValidateView(generics.UpdateAPIView):
                  return Response({"message": "Orders validated successfully" , "Number of Orders valid":nbOrdes}, status=status.HTTP_200_OK)
         except Exception as e :
             return  Response({"message": "Failed to validate orders","error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+=======
+        
+
+        
+        
+        
+@api_view(['POST'])     
+@jwt_must
+def validateorder(request):
+    try:
+        with transaction.atomic():
+            serializer=ValidateOrdersSerializer(data=request.data)
+            if serializer.is_valid():
+                order = Order.objects.get(id= serializer.validated_data['id'] ) # type: ignore
+                
+                order.state = serializer.validated_data['state'] # type: ignore
+                order.validated_by_id = request.user_id # type: ignore
+                order.save()
+                return Response({"message": "Order validated successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e :
+        return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
+>>>>>>> 194df305d46839cb162395484a3dec9965a2e5f6:backend/projectpfe/Orders_Manage/views.py
  
     
-class RectificativeOrderView(generics.CreateAPIView):
-    queryset=Order.objects.all()
-    serializer_class=RectificativeOrderSerializer
-    def create(self, request, *args, **kwargs):
-        try:
-            serializer=self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            return Response({'data':'Rectificative Order Successfully'},status=status.HTTP_201_CREATED)
-        except Exception as e:    
-            return Response({'error':str(e)},status=status.HTTP_400_BAD_REQUEST)
+    
 
+<<<<<<< HEAD:backend/projectpfe/order_client/views.py
 class OrderListView(generics.ListAPIView):
    
    def get(self,request,*args,**kwargs):
@@ -106,3 +148,54 @@ def inValid(request):
     Order.objects.update(states=States.PENDING)
     return Response({'data':'bien'})
             
+=======
+        
+@api_view(['POST'])
+@jwt_must
+def RectificativeOrder(request):
+    
+    
+    try:
+        with transaction.atomic():
+            serializer = RectificativeOrderSerializer(data = request.data, context = {'user_id': request.user_id})
+                         
+    
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Order created successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    except Exception as e :
+        return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
+        
+     
+@api_view(['GET'])
+@jwt_must
+def get_order(request,id):
+    try:
+        if request.role == 'client':
+            order = OrderreadSerializer(Order.objects.get(id=id,client_id= request.user_id))
+            return Response({"orders": order.data}, status=status.HTTP_200_OK)
+        else:
+            order = OrderreadSerializer(Order.objects.get(id=id))
+            return Response({"orders": order.data}, status=status.HTTP_200_OK)
+            
+    except Order.DoesNotExist:
+        return Response({'error': 'does not exist or you do not have permission' }, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        
+        
+        
+    
+    
+
+    
+
+    
+   
+    
+    
+    
+>>>>>>> 194df305d46839cb162395484a3dec9965a2e5f6:backend/projectpfe/Orders_Manage/views.py
