@@ -20,6 +20,8 @@ import PaymentsList from "./pages/payment";
 import PaymentDetails from "./pages/paymentDetails";
 import AddProduct from "./component/AddProduct";
 import EditProductType from "./component/EditProductType";
+import ProductsList from "./pages/Product";
+import EditProduct from "./component/EditProduct";
 
 /* Layout */
 function Layout() {
@@ -34,13 +36,18 @@ function Layout() {
 function App() {
   return (
     <div className="relative min-h-screen">
-      {/* Background */}
-      <img
-        src="/SONATRACH-SIEGE-2025-WEB.jpg"
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-black/30"></div>
+
+      {/* Background image (fixed 100vh layer) */}
+      <div className="fixed top-0 left-0 w-full h-screen -z-10">
+        <img
+          src="/SONATRACH-SIEGE-2025-WEB.jpg"
+          alt=""
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="absolute inset-0">
+        <div className="w-full h-full bg-gradient-to-r from-black/40 via-black/20 to-black/40"></div>
+      </div>
       <Toaster position="bottom-right" />
 
       <Routes>
@@ -77,9 +84,10 @@ function App() {
             <SuperAdminRoute>
               <EditProductType />
             </SuperAdminRoute>} />
-          <Route path="/EditProductType/" element={
+            
+          <Route path="/EditProduct/:id" element={
             <SuperAdminRoute>
-              <EditProductType />
+              <EditProduct />
             </SuperAdminRoute>} />
 
 
@@ -87,6 +95,7 @@ function App() {
           <Route path="/contracts" element={<ContractsList />} />
           <Route path="/contracts/:id" element={<ContractDetails />} />
           <Route path="/Balance" element={<BalanceList />} />
+          <Route path="/product" element={<ProductsList />} />
           <Route path="/Invoices" element={<Invoice />} />
           <Route path="/Bills" element={<Bills />} />
           <Route path="/Notifications" element={<Notifications />} />
@@ -96,7 +105,7 @@ function App() {
           <Route path="/Payment/:id" element={<PaymentDetails />} />
         </Route>
       </Routes>
-    </div>
+    </div >
   );
 }
 

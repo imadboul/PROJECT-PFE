@@ -6,9 +6,11 @@ import {
   validateContract,
   rejectContract,
 } from "../context/services/contractService";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function ContractDetails() {
   const { id } = useParams();
+  const { fetchNotifications } = useNotifications();
 
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,9 +22,13 @@ export default function ContractDetails() {
       const res = await getContractById(id);
       setContract(res.data.contract);
       setSelectedContract(null); // مباشرة modal مفتوح
-    } catch (err) {
-      toast.error("Failed to load contract");
-    } finally {
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
+      } finally {
       setLoading(false);
     }
   };
@@ -34,11 +40,16 @@ export default function ContractDetails() {
   const handleValidate = async (contractId) => {
     try {
       await validateContract(contractId);
+      await fetchNotifications();
       toast.success("Validated");
       fetchContract();
-    } catch {
-      toast.error("Error validating");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error validation";
+
+      toast.error(msg);
+      }
   };
 
   const handleReject = async (contractId) => {
@@ -46,9 +57,13 @@ export default function ContractDetails() {
       await rejectContract(contractId);
       toast.success("Rejected");
       fetchContract();
-    } catch {
-      toast.error("Error rejecting");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error rejection";
+
+      toast.error(msg);
+      }
   };
 
   const formatDate = (date) => {
@@ -82,7 +97,7 @@ export default function ContractDetails() {
         {/* Back */}
         <div className="flex justify-between items-center">
           <button
-            className="text-white text-2xl font-bold hover:text-orange-500"
+            className="text-white text-2xl cursor-pointer font-bold hover:text-orange-500"
             onClick={() => window.history.back()}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -143,7 +158,7 @@ export default function ContractDetails() {
 
             <button
               onClick={() => setSelectedContract(null)}
-              className="absolute top-2 right-3 text-white hover:text-red-500"
+              className="absolute top-2 right-3 cursor-pointer text-white hover:text-red-500"
             >
               ✕
             </button>
@@ -173,7 +188,9 @@ export default function ContractDetails() {
                 className={
                   selectedContract.state === "validated"
                     ? "text-green-500"
-                    : "text-yellow-500"
+                    : selectedContract.state === "rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
                 }
               >
                 <strong className="text-white">State:</strong>{" "}
@@ -190,13 +207,13 @@ export default function ContractDetails() {
                 </p>
 
                 <div className="flex gap-4">
-                  {selectedContract.state !== "validated" && (
+                  {selectedContract.state === "pending" && (
                     <>
                       <button
                         onClick={() =>
                           handleValidate(selectedContract.id)
                         }
-                        className="flex items-center justify-center w-7 h-7 rounded-full bg-green-700 hover:bg-green-800 text-white"
+                        className="flex items-center justify-center cursor-pointer w-7 h-7 rounded-full bg-green-700 hover:bg-green-800 text-white"
                       >
                         <i className="fa-solid fa-check text-sm"></i>
                       </button>
@@ -205,7 +222,7 @@ export default function ContractDetails() {
                         onClick={() =>
                           handleReject(selectedContract.id)
                         }
-                        className="flex items-center justify-center w-7 h-7 rounded-full bg-red-700 hover:bg-red-800 text-white"
+                        className="flex items-center justify-center cursor-pointer w-7 h-7 rounded-full bg-red-700 hover:bg-red-800 text-white"
                       >
                         <i className="fa-solid fa-xmark text-sm"></i>
                       </button>

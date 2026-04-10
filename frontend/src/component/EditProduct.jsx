@@ -1,0 +1,386 @@
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { Controller, useForm } from "react-hook-form";
+import { useParams, useNavigate, NavLink } from "react-router-dom";
+import {
+  getProducts,
+  updateProduct,
+  createProduct,
+  getProductTypes,
+  deleteProductType,
+} from "../context/services/productService";
+import Select from "react-select";
+
+function EditProduct() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [productTypes, setProductTypes] = useState([]);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    control,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  //  units (FIX)
+  const unitOptions = [
+    { value: "liter", label: "Liter" },
+    { value: "kg", label: "Kg" },
+  ];
+
+  // load product types
+  useEffect(() => {
+    const fetchTypes = async () => {
+      try {
+        const res = await getProductTypes();
+        const data = res?.data.types;
+        setProductTypes(data);
+      } catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error loading product type";
+
+      toast.error(msg);
+      }
+    };
+
+    fetchTypes();
+  }, []);
+
+  // options for select
+  const options = productTypes.map((type) => ({
+    value: type.id,
+    label: type.name,
+  }));
+
+  const selectedType = watch("productType");
+
+  // load product if edit
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      try {
+        const res = await getProducts();
+        const data = res?.data?.products || res?.data || res;
+
+        const current = data.find((p) => p.id === Number(id));
+
+        if (!current) {
+          const msg =
+            data?.error ||
+            "Error creating product";
+
+          toast.error(msg);
+          return;
+        }
+
+
+        setValue("name", current.name);
+        setValue("description", current.description);
+        setValue("unitPrice", current.unit_price);
+        setValue("qteLeft", current.qte_left);
+        setValue("unit", current.unit);
+        setValue("productType", current.product_type);
+      } catch (error) {
+        const msg =
+          error.response?.data?.error ||
+          "Error creating product";
+
+        toast.error(msg);
+      }
+    };
+
+    fetchData();
+  }, [id, setValue]);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteProductType(id);
+      toast.success("Deleted successfully");
+
+
+      const res = await getProductTypes();
+      const data = res.data.types;
+      setProductTypes(Array.isArray(data) ? data : []);
+    } catch (error) {
+      const msg =
+        error.response?.data?.error ||
+        "Error deleting product";
+
+      toast.error(msg);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+
+      const payload = {
+        name: data.name,
+        description: data.description,
+        unit_price: Number(data.unitPrice),
+        unit: data.unit,
+        qte_left: Number(data.qteLeft),
+        product_type: Number(data.productType),
+      };
+
+      if (id) {
+        await updateProduct(id, payload);
+        toast.success("Updated successfully");
+      } else {
+        await createProduct(payload);
+        toast.success("Created successfully");
+        reset();
+      }
+
+      navigate("/Product");
+    } catch (error) {
+      const msg =
+        error.response?.data?.error ||
+        "Error deleting product";
+
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-transparent text-white">
+      <div className="w-full max-w-xl bg-black/60 rounded-2xl shadow-lg p-6 border border-black/60">
+
+        {/* Header */}
+        <div>
+          <button
+            className="placeholder-white text-2xl font-bold cursor-pointer hover:text-orange-500"
+            onClick={() => window.history.back()}
+          >
+            <i className="fa-solid fa-arrow-left"></i>
+          </button>
+
+          <h2 className="text-2xl font-bold text-center mb-6 text-orange-500">
+            {id ? "Edit Product" : "Add Product"}
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+          {/* Product Type */}
+          <div className="flex items-center gap-4">
+
+            <div className="flex-1">
+              <Controller
+                name="productType"
+                control={control}
+                rules={{ required: "Product type is required" }}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={options}
+                    placeholder="Select Product Type"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: "rgba(7, 7, 7, 0.11)",
+                        borderColor: state.isFocused ? "#f97316" : "#000",
+                        boxShadow: "none",
+                        fontSize: "20px",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        backgroundColor: "rgba(0, 0, 0, 0.66)",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused
+                          ? "rgba(247, 77, 9, 0.96)"
+                          : "rgba(0, 0, 0, 0.66)",
+
+                        cursor: "pointer",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                    }}
+                    onChange={(selected) => field.onChange(selected.value)}
+                    value={options.find((opt) => opt.value === field.value)}
+                  />
+                )}
+              />
+              <div className="relative bottom-0 mb-4">
+                {errors.productType && (
+                  <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
+                    {errors.productType.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            {/* Edit Type */}
+            <NavLink
+              to={selectedType ? `/EditProductType/${selectedType}` : "#"}
+              onClick={(e) => {
+                if (!selectedType) {
+                  e.preventDefault();
+                  toast.error("Select a product type first");
+                }
+              }}
+              className="text-orange-400 text-xl hover:text-orange-600 transition"
+            >
+              <i className="fa-solid fa-pen"></i>
+            </NavLink>
+
+            {/*delete*/}
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedType) {
+                  handleDelete(selectedType);
+                } else {
+                  toast.error("Select a product type first");
+                }
+              }}
+              className="text-orange-400 cursor-pointer text-xl hover:text-orange-600 transition"
+            >
+              <i className="fa-solid fa-trash"></i>
+            </button>
+          </div>
+
+          {/* Name */}
+          <input
+            type="text"
+            placeholder="Name"
+            {...register("name", { required: "Name is required" })}
+            className="w-full text-xl placeholder-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+
+          <div className="relative bottom-4 mb-6">
+            {errors.name && (
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
+                {errors.name.message}
+              </p>
+            )}
+          </div>
+          {/* Description */}
+          <textarea
+            placeholder="Description"
+            {...register("description")}
+            className="w-full text-xl placeholder-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+
+          {/* Price + Unit */}
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex">
+              <input
+                type="number"
+                placeholder="Unit Price"
+                {...register("unitPrice", {
+                  required: "Unit price is required",
+                  min: { value: 1, message: "Must be > 0" },
+                })}
+                className="w-full text-xl placeholder-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+
+            </div>
+
+
+            {/* Unit */}
+            <div className="">
+              <Controller
+                className="focus:outline-none focus:ring-2 focus:ring-orange-500"
+                name="unit"
+                control={control}
+                defaultValue="liter"
+                rules={{ required: "Unit is required" }}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    options={unitOptions}
+                    placeholder="Select Unit"
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        backgroundColor: "rgba(7, 7, 7, 0.11)",
+                        borderColor: state.isFocused ? "#f97316" : "#000",
+                        boxShadow: "none",
+                        fontSize: "20px",
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        backgroundColor: "rgba(0, 0, 0, 0.66)",
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        backgroundColor: state.isFocused
+                          ? "rgba(247, 77, 9, 0.96)"
+                          : "rgba(0, 0, 0, 0.66)",
+                        color: "#fff",
+                        cursor: "pointer",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                      placeholder: (base) => ({
+                        ...base,
+                        color: "#fff",
+                      }),
+                    }}
+                    onChange={(selected) => field.onChange(selected.value)}
+                    value={unitOptions.find((opt) => opt.value === field.value)}
+                  />
+                )}
+              />
+            </div>
+          </div>
+          <div className="relative bottom-5 mb-6">
+            {errors.unitPrice && (
+              <p className="absolute top-0 left-0 right-60 text-red-500 text-md text-center mt-1">
+                {errors.unitPrice.message}
+              </p>
+            )}
+          </div>
+
+          {/* Quantity */}
+          <input
+            type="number"
+            placeholder="Quantity Left"
+            {...register("qteLeft", { required: "quantity required"})}
+            className="w-full text-xl placeholder-white p-2 border border-black rounded focus:ring-2 focus:ring-orange-500"
+          />
+          <div className="relative bottom-5 mb-5">
+            {errors.qteLeft && (
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
+                {errors.qteLeft.message}
+              </p>
+            )}
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 font-bold cursor-pointer bg-orange-600 hover:bg-orange-700 rounded"
+          >
+            {loading ? "Loading..." : id ? "Update Product" : "Create Product"}
+          </button>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default EditProduct;

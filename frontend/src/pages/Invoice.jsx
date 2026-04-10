@@ -89,7 +89,7 @@ export default function InvoiceList() {
 
             <button
               onClick={() => setSelectedInvoice(null)}
-              className="absolute top-2 right-3 hover:text-red-500 text-xl"
+              className="absolute top-2 right-3 cursor-pointer hover:text-red-500 text-xl"
             >
               ✕
             </button>
@@ -115,7 +115,7 @@ export default function InvoiceList() {
                 ? "Paid" : "Unpaid"}
             </p>
 
-            <button className="mt-2 w-full bg-orange-500 py-2 rounded hover:bg-orange-600">
+            <button className="mt-2 w-full bg-orange-500 cursor-pointer py-2 rounded hover:bg-orange-600">
               Download PDF
             </button>
           </div>

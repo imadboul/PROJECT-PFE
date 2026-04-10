@@ -45,15 +45,19 @@ api.interceptors.response.use(
         originalRequest.headers.Auth = `Bearer ${newAccess}`;
 
         return api(originalRequest);
-      } catch (err) {
-        console.log("Refresh failed", err);
+      } catch (error) {
+        const msg =
+          error.response?.data?.error ||
+          "Error refresh";
+
+         console.log(msg)
 
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
 
         window.location.href = "/";
 
-        return Promise.reject(err);
+        return Promise.reject(error);
       }
     }
 

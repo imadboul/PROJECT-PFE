@@ -7,12 +7,15 @@ import {
 } from "../context/services/BalanceService";
 import { getProductTypes } from "../context/services/productService";
 import toast from "react-hot-toast";
+import { useNotifications } from "../context/NotificationContext";
+
 
 export default function PaymentDetails() {
   const [payment, setPayment] = useState(null);
   const [productTypes, setProductTypes] = useState([]);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { fetchNotifications } = useNotifications();
 
   const { id } = useParams();
 
@@ -29,10 +32,13 @@ export default function PaymentDetails() {
 
       setPayment(paymentData);
       setProductTypes(Array.isArray(typesData) ? typesData : []);
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to load payments");
-    } finally {
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
+      }finally {
       setLoading(false);
     }
   };
@@ -45,13 +51,17 @@ export default function PaymentDetails() {
   const handleValidate = async (id) => {
     try {
       await validatePayment(id);
+      await fetchNotifications();
       toast.success("Payment validated");
       setSelectedPayment(null);
       fetchPayment();
-    } catch (err) {
-      console.log(err);
-      toast.error("Validation failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error validation";
+
+      toast.error(msg);
+      }
   };
 
   // Reject
@@ -61,10 +71,13 @@ export default function PaymentDetails() {
       toast.success("Payment rejected");
       setSelectedPayment(null);
       fetchPayment();
-    } catch (err) {
-      console.log(err);
-      toast.error("Rejection failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error rejection";
+
+      toast.error(msg);
+      }
   };
 
   // Toggle (optional if you still need it)
@@ -108,7 +121,7 @@ export default function PaymentDetails() {
         {/* Controls */}
         <div className="flex justify-between items-center">
           <button
-            className="text-white text-2xl font-bold hover:text-orange-500"
+            className="text-white text-2xl cursor-pointer font-bold hover:text-orange-500"
             onClick={() => window.history.back()}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -116,7 +129,7 @@ export default function PaymentDetails() {
 
           <button
             onClick={changeStatus}
-            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10"
+            className="border border-white cursor-pointer text-white px-4 py-2 rounded hover:bg-white/10"
           >
             {showValidated ? "Show Pending" : "Show Validated"}
           </button>
@@ -182,7 +195,7 @@ export default function PaymentDetails() {
 
             <button
               onClick={() => setSelectedPayment(null)}
-              className="absolute top-2 right-3 hover:text-red-500"
+              className="absolute top-2 right-3 cursor-pointer hover:text-red-500"
             >
               ✕
             </button>
@@ -213,11 +226,13 @@ export default function PaymentDetails() {
               </p>
 
               <p
-                className={
-                  selectedPayment.state === "validated"
-                    ? "text-green-500"
-                    : "text-yellow-500"
-                }
+                 className={
+                        selectedPayment.state === "validated"
+                          ? "text-green-500"
+                          : selectedPayment.state === "rejected"
+                            ? "text-red-500"
+                            : "text-yellow-500"
+                      }
               >
                 <strong className="text-white">State:</strong>{" "}
                 {selectedPayment.state}
@@ -235,7 +250,7 @@ export default function PaymentDetails() {
                 </p>
 
                 <div className="flex gap-4">
-                  {selectedPayment.state !== "validated" && (
+                  {selectedPayment.state === "pending" && (
                     <>
                       <button
                         onClick={() =>

@@ -20,9 +20,12 @@ export default function BalanceList() {
 
         setBalances(resB.data.balances ||resB.data|| []);
         setProductTypes(resP.data.types || []);
-      } catch (err) {
-        console.log(err);
-        toast.error("Error fetching data");
+      }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
       }
     };
 

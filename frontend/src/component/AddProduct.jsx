@@ -19,7 +19,6 @@ function AddProduct() {
     handleSubmit,
     reset,
     control,
-    watch,
     formState: { errors },
   } = useForm();
 
@@ -28,7 +27,6 @@ function AddProduct() {
     label: type.name,
   }));
 
-  const selectedType = watch("productType");
 
   useEffect(() => {
     const fetchProductTypes = async () => {
@@ -36,13 +34,18 @@ function AddProduct() {
         const res = await getProductTypes();
         const data = res.data.types || res.data;
         setProductTypes(Array.isArray(data) ? data : []);
-      } catch (err) {
-        toast.error("Error fetching product types", err);
+      } catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error creating product";
+
+      toast.error(msg);
       }
     };
 
     fetchProductTypes();
   }, []);
+
 
   const onSubmit = async (data) => {
     try {
@@ -52,7 +55,7 @@ function AddProduct() {
         name: data.name,
         description: data.description,
         unit_price: Number(data.unitPrice),
-        unit: data.unit,
+        unit: data.unit.value,
         qte_left: Number(data.qteLeft),
         product_type: Number(data.productType),
       };
@@ -64,11 +67,8 @@ function AddProduct() {
 
     } catch (error) {
       const msg =
-        error.response?.data?.error
-          ? JSON.stringify(error.response.data.error)
-          : error.response?.data?.detail ||
-          JSON.stringify(error.response?.data) ||
-          "Error creating product";
+        error.response?.data?.error ||
+        "Error creating product";
 
       toast.error(msg);
     } finally {
@@ -83,7 +83,7 @@ function AddProduct() {
         {/* Header */}
         <div>
           <button
-            className="placeholder-white text-2xl font-bold hover:text-orange-500"
+            className="placeholder-white text-2xl cursor-pointer font-bold hover:text-orange-500"
             onClick={() => window.history.back()}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -96,9 +96,9 @@ function AddProduct() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Product Type */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
 
-            <div className="flex-1">
+            <div className="w-2/3">
               <Controller
                 name="productType"
                 control={control}
@@ -125,13 +125,14 @@ function AddProduct() {
                         backgroundColor: state.isFocused
                           ? "rgba(247, 77, 9, 0.96)"
                           : "rgba(0, 0, 0, 0.66)",
-                        color: "#fff",
+
                         cursor: "pointer",
                       }),
                       singleValue: (base) => ({
                         ...base,
                         color: "#fff",
                       }),
+
                       placeholder: (base) => ({
                         ...base,
                         color: "#fff",
@@ -142,34 +143,20 @@ function AddProduct() {
                   />
                 )}
               />
-              <div className="relative bottom-0 mb-4">
-                {errors.productType && (
-                  <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
-                    {errors.productType.message}
-                  </p>
-                )}
-              </div>
+
             </div>
 
             {/* Add Type */}
             <NavLink to="/AddProductType" className="text-orange-400 text-xl hover:text-orange-600 transition">
               <i className="fa-solid fa-plus"></i>
             </NavLink>
-
-            {/* Edit Type */}
-            <NavLink
-              to={selectedType ? `/EditProductType/${selectedType}` : "#"}
-              onClick={(e) => {
-                if (!selectedType) {
-                  e.preventDefault();
-                  toast.error("Select a product type first");
-                }
-              }}
-              className="text-orange-400 text-xl hover:text-orange-600 transition"
-            >
-              <i className="fa-solid fa-pen"></i>
-            </NavLink>
-
+          </div>
+          <div className="relative bottom-5 mb-7">
+            {errors.productType && (
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
+                {errors.productType.message}
+              </p>
+            )}
           </div>
 
           {/* Name */}
@@ -195,10 +182,10 @@ function AddProduct() {
           />
 
           {/* Price + Unit */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-6">
 
             {/* Price */}
-            <div className="flex-1">
+            <div className="flex">
               <input
                 type="number"
                 placeholder="Unit Price"
@@ -208,28 +195,21 @@ function AddProduct() {
                 })}
                 className="w-full text-xl placeholder-white p-2 border border-black rounded focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
-              <div className="relative bottom-1 mb-4">
-                {errors.unitPrice && (
-                  <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
-                    {errors.unitPrice.message}
-                  </p>
-                )}
-              </div>
+
             </div>
 
             {/* Unit */}
-            <div className="w-40">
+            <div className="flex">
               <Controller
                 className="focus:outline-none focus:ring-2 focus:ring-orange-500"
                 name="unit"
                 control={control}
-                defaultValue="liter"
+                defaultValue={unitOptions[0]}
                 rules={{ required: "Unit is required" }}
                 render={({ field }) => (
                   <Select
                     {...field}
                     options={unitOptions}
-                    placeholder="Select Unit"
                     styles={{
                       control: (base, state) => ({
                         ...base,
@@ -259,13 +239,21 @@ function AddProduct() {
                         color: "#fff",
                       }),
                     }}
-                    onChange={(selected) => field.onChange(selected.value)}
-                    value={unitOptions.find((opt) => opt.value === field.value)}
+                    onChange={(selected) => field.onChange(selected)}
+                    value={field.value}
                   />
                 )}
               />
             </div>
 
+
+          </div>
+          <div className="relative bottom-5 mb-6">
+            {errors.unitPrice && (
+              <p className="absolute top-0 left-0 right-0 text-red-500 text-md text-center mt-1">
+                {errors.unitPrice.message}
+              </p>
+            )}
           </div>
 
           {/* Quantity */}
@@ -292,7 +280,7 @@ function AddProduct() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 font-bold bg-orange-600 hover:bg-orange-700 rounded placeholder-white"
+            className="w-full py-2 font-bold bg-orange-600 cursor-pointer hover:bg-orange-700 rounded placeholder-white"
           >
             {loading ? "Loading..." : "Create Product"}
           </button>

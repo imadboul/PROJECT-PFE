@@ -24,8 +24,12 @@ function RequestPayment() {
         const res = await getProductTypes()
         const data = res.data.types || res.data
         setProductTypes(Array.isArray(data) ? data : [])
-      } catch {
-        toast.error("Error fetching product types")
+      }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching product type";
+
+      toast.error(msg);
       }
     }
     fetchProductTypes()
@@ -56,15 +60,13 @@ function RequestPayment() {
       toast.success("Payment request sent")
       navigate("/Balance")
 
-    } catch (err) {
-      console.log(err.response?.data);
-      const errorMsg =
-        err.response?.data?.transferDate ||
-        err.response?.data?.error ||
-        "Something went wrong";
+    } catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error creating payment";
 
-      toast.error(errorMsg);
-    } finally {
+      toast.error(msg);
+      } finally {
       setLoding(false)
     }
   }
@@ -176,11 +178,7 @@ function RequestPayment() {
           <button
             type="submit"
             disabled={loding}
-            className={`w-full mt-4 py-2 rounded-lg text-white transition
-            ${loding
-                ? "bg-gray-500 cursor-not-allowed"
-                : "font-bold bg-orange-600 hover:bg-orange-700"
-              }`}
+            className="w-full mt-4 py-2 rounded-lg text-white transition cursor-pointer"
           >
             {loding ? "Loading..." : "Request Payment"}
           </button>
