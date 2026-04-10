@@ -22,8 +22,10 @@ def order(request):
     if request.method == 'POST':
         try:
             serializer = OrderSerializer(data=request.data, context = {'user_id': request.user_id})
+            print('imad')
             if serializer.is_valid():
                 order = serializer.save(client_id=request.user_id)  # type: ignore
+                print('imadsss')
                 notify_all_admin('VALIDATE AN ORDER',f'validate order {order.id}','') # type: ignore
                 return Response({'data': 'Order created successfully wait for validation'}, status=status.HTTP_201_CREATED)
             else:
@@ -53,8 +55,11 @@ def validateorder(request):
     try:
         with transaction.atomic():
             serializer=ValidateOrdersSerializer(data=request.data)
+            
             if serializer.is_valid():
-                order = Order.objects.get(id= serializer.validated_data['id'] ) # type: ignore
+                
+                order = Orderclient.objects.get(id= serializer.validated_data['id'] ) # type: ignore
+                
                 
                 order.state = serializer.validated_data['state'] # type: ignore
                 order.validated_by_id = request.user_id # type: ignore

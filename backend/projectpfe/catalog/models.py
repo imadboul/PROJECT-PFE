@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import Client
+from decimal import Decimal
 
 class ProductType(models.Model):
     STATES = [
@@ -45,8 +46,8 @@ class Contract(models.Model):
     id = models.AutoField(primary_key=True)
     start_date = models.DateTimeField(null=False, db_index=True) ## YYYY-MM-DDTHH:MM:SSZ ex:"2026-04-02T14:30:00Z"
     end_date = models.DateTimeField(null=False)
-    qte_global = models.PositiveIntegerField()
-    qte_used = models.PositiveIntegerField(default=0)
+    qte_global = models.DecimalField(null=False,blank=False,max_digits=12,decimal_places=3)
+    qte_used = models.DecimalField(max_digits=12,decimal_places=3,default=Decimal('0'))
     created_at = models.DateTimeField(auto_now_add=True)
     validated_at = models.DateTimeField(null=True)
     state = models.CharField(max_length=20,choices=STATES,default="pending", db_index=True)

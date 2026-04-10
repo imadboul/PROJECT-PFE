@@ -88,13 +88,15 @@ def validatePayment(request):
         return Response ( { "error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST )
     
 def check_if_enough(amount, client_id, type_id):
+    
+    print('ddddddddddddddd')
     balance_qs = Balance.objects.filter(client_id=client_id, productType_id=type_id)
 
     if not balance_qs.exists():
         return {"success": False, "message": "No balance found"}
 
     balance = balance_qs.first()
-
+    print(balance)
     if amount > balance.amount: # type: ignore
         return {"success": False, "message": "Not enough balance"}
     balance.amount -= amount # type: ignore

@@ -22,9 +22,8 @@ def order(request):
         try:
             serializer = OrderSerializer(data=request.data, context = {'user_id': request.user_id})
             if serializer.is_valid():
-                order = serializer.save(client_id=request.user_id)  # type: ignore
-                notify_all_admin('VALIDATE AN ORDER',f'validate order {order.id}','') # type: ignore
-                return Response({'data': 'Order created successfully wait for validation'}, status=status.HTTP_201_CREATED)
+                order = serializer.save()  # type: ignore
+                return Response({'data': 'Order created successfully'}, status=status.HTTP_201_CREATED)
             else:
                 return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -44,25 +43,7 @@ def order(request):
         
 
         
-        
-        
-@api_view(['POST'])     
-@jwt_must
-def validateorder(request):
-    try:
-        with transaction.atomic():
-            serializer=ValidateOrdersSerializer(data=request.data)
-            if serializer.is_valid():
-                order = Order.objects.get(id= serializer.validated_data['id'] ) # type: ignore
-                
-                order.state = serializer.validated_data['state'] # type: ignore
-                order.validated_by_id = request.user_id # type: ignore
-                order.save()
-                return Response({"message": "Order validated successfully"}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e :
-        return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
+    
  
     
     

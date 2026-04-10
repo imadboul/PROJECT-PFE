@@ -1,5 +1,6 @@
 from django.db import models
 from catalog.models import Contract,Client,Product
+from order_client.models import Orderclient
 
 
 class Types(models.TextChoices):
@@ -11,8 +12,6 @@ class Types(models.TextChoices):
 class States(models.TextChoices):
     
        PENDING='pending','Pending'
-       VALID='validated','Validated'
-       REJECT='rejected','Rejected'
        INVOICED = 'invoiced','Invoiced'      
 
     
@@ -22,15 +21,15 @@ class Order(models.Model):
     date_created=models.DateTimeField(auto_now_add=True)
     contract=models.ForeignKey(Contract,related_name='orders',null=False,blank=False,on_delete=models.PROTECT)
     client=models.ForeignKey(Client,related_name='orders',null=False,blank=False,on_delete=models.PROTECT)
+    client_order= models.ForeignKey(Orderclient ,related_name='fufilled_orders',null=False,blank=False,on_delete=models.PROTECT)
     parent_order = models.ForeignKey('self',related_name='children',null=True,blank=True,on_delete=models.PROTECT)
-    invoice=models.ForeignKey('Invoices.Invoice',related_name='invoice_order_items',null=False,blank=False,on_delete=models.PROTECT)
+    invoice=models.ForeignKey('Invoices.Invoice',related_name='invoice_order_items',null=True,blank=False,on_delete=models.PROTECT)
     type=models.CharField(null=False,blank=False,choices=Types.choices,max_length=20,default=Types.NORMAL)
     state=models.CharField(choices=States.choices,max_length=20,default=States.PENDING)
-    validated_by = models.ForeignKey(Client,null=True,on_delete=models.PROTECT)
+    stated_by = models.ForeignKey(Client,null=True,on_delete=models.PROTECT)
     
  
 class OrderProduct(models.Model):
-    units = [('L', 'Liter'),('HL', 'Hectoliter'),('KG', 'Kilogram'),('TM', 'Ton')]
     
     
     id=models.AutoField(primary_key=True)
