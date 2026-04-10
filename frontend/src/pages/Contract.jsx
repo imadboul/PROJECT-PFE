@@ -1,25 +1,32 @@
 import { useEffect, useState } from "react";
-import { getContracts, rejectContract, validateContract } from "../context/services/contractService";
+import { getContractPDF, getContracts, rejectContract, validateContract } from "../context/services/contractService";
 import toast from "react-hot-toast";
 import { NavLink } from "react-router-dom";
+import { useNotifications } from "../context/NotificationContext";
+
 
 export default function ContractsList() {
   const [contracts, setContracts] = useState([]);
   const [showActive, setShowActive] = useState(true);
   const [selectedContract, setSelectedContract] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { fetchNotifications } = useNotifications();
 
   // ✅ Validate
   const handleValidate = async (id) => {
     try {
       await validateContract(id);
+      await fetchNotifications();
       toast.success("Contrat validated");
       setSelectedContract(null);
       fetchContracts();
-    } catch (err) {
-      console.log(err);
-      toast.error("Validation failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error validation";
+
+      toast.error(msg);
+      }
   };
 
   // ✅ Reject
@@ -29,21 +36,45 @@ export default function ContractsList() {
       toast.success("Payment rejected");
       setSelectedContract(null);
       fetchContracts();
-    } catch (err) {
-      console.log(err);
-      toast.error("Rejection failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error rejection";
+
+      toast.error(msg);
+      }
   };
 
+  const viewContract = async (id) => {
+    try {
+      const res = await getContractPDF(id);
+
+      const file = new Blob([res.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(file);
+
+      window.open(url, "_blank");
+
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error view";
+
+      toast.error(msg);
+      }
+  };
 
   const fetchContracts = async () => {
     try {
       setLoading(true);
       const res = await getContracts();
       setContracts(res.data.contracts || res.data);
-    } catch (err) {
-      toast.error("Failed to load contracts", err);
-    } finally {
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
+      } finally {
       setLoading(false);
     }
   };
@@ -163,7 +194,7 @@ export default function ContractsList() {
 
             <button
               onClick={() => setSelectedContract(null)}
-              className="absolute top-2 right-3 text-white hover:text-red-500"
+              className="absolute top-2 right-3 text-white cursor-pointer hover:text-red-500"
             >
               ✕
             </button>
@@ -185,7 +216,15 @@ export default function ContractsList() {
                 {formatDate(selectedContract.validated_at)}
               </p>
 
-              <p className={selectedContract.state === "validated" ? "text-green-500" : "text-yellow-500"}>
+              <p
+                className={
+                  selectedContract.state === "validated"
+                    ? "text-green-500"
+                    : selectedContract.state === "rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                }
+              >
                 <strong className="text-white">State:</strong>{" "}
                 {selectedContract.state}
 
@@ -199,7 +238,7 @@ export default function ContractsList() {
               <div className="flex justify-between gap-4 mt-3">
                 <p><strong>Validated by:</strong> {selectedContract.validated_by || "—"}</p>
                 <div className="flex gap-4">
-                  {selectedContract.state !== "validated" && (
+                  {selectedContract.state === "pending" && (
                     <>
                       <button
                         onClick={() => handleValidate(selectedContract.id)}
@@ -219,6 +258,13 @@ export default function ContractsList() {
                         <i className="fa-solid fa-xmark text-sm"></i>
                       </button>
                     </>
+                  )}
+                  {selectedContract.state === "validated" && (
+
+                    <button className="text-orange-400 cursor-pointer text-3xl hover:text-orange-600 transition"
+                      onClick={() => viewContract(selectedContract.id)}>
+                      <i class="fa-solid fa-file-pdf"></i>
+                    </button>
                   )}
 
                 </div>

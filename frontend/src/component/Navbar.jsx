@@ -12,7 +12,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   
   const linkStyle = ({ isActive }) =>
-    `px-3 py-2 text-lg ${isActive ? "text-orange-500" : "text-white font-medium"
+    `px-3 py-2 text-lg ${isActive ? "text-orange-500 font-medium" : "text-white font-medium"
     } hover:text-orange-500`;
 
   const unreadCount = notifications.filter(n => !n.viewed).length;
@@ -38,6 +38,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/Invoices" className={linkStyle}>
           Invoices
+        </NavLink>
+        <NavLink to="/product" className={linkStyle}>
+          Product
         </NavLink>
         {["admin", "superAdmin"].includes(user?.role) && (
           <NavLink to="/Sign" className={linkStyle}>

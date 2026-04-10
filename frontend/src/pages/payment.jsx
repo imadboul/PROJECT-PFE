@@ -7,6 +7,8 @@ import {
 } from "../context/services/BalanceService";
 import { getProductTypes } from "../context/services/productService";
 import toast from "react-hot-toast";
+import { useNotifications } from "../context/NotificationContext";
+
 
 export default function PaymentsList() {
   const [payments, setPayments] = useState([]);
@@ -14,11 +16,10 @@ export default function PaymentsList() {
   const [showValidated, setShowValidated] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const { fetchNotifications } = useNotifications();
   const location = useLocation();
   const selectedProductType = location.state?.productType;
-
-  // ✅ Fetch data
+  //  Fetch data
   const fetchPayments = async () => {
     try {
       setLoading(true);
@@ -31,10 +32,13 @@ export default function PaymentsList() {
 
       setPayments(Array.isArray(paymentsData) ? paymentsData : []);
       setProductTypes(Array.isArray(typesData) ? typesData : []);
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to load payments");
-    } finally {
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
+      }finally {
       setLoading(false);
     }
   };
@@ -43,38 +47,45 @@ export default function PaymentsList() {
     fetchPayments();
   }, []);
 
-  // ✅ Validate
+  // Validate
   const handleValidate = async (id) => {
     try {
       await validatePayment(id);
+      await fetchNotifications();
       toast.success("Payment validated");
       setSelectedPayment(null);
       fetchPayments();
-    } catch (err) {
-      console.log(err);
-      toast.error("Validation failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error validation";
+
+      toast.error(msg);
+      }
   };
 
-  // ✅ Reject
+  //  Reject
   const handleReject = async (id) => {
     try {
       await rejectPayment(id);
       toast.success("Payment rejected");
       setSelectedPayment(null);
       fetchPayments();
-    } catch (err) {
-      console.log(err);
-      toast.error("Rejection failed");
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error rejection";
+
+      toast.error(msg);
+      }
   };
 
-  // ✅ Toggle filter
+  //  Toggle filter
   const changeStatus = () => {
     setShowValidated((prev) => !prev);
   };
 
-  // ✅ Format date
+  // Format date
   const formatDate = (date) => {
     if (!date) return "—";
     return new Date(date).toLocaleString("en-GB", {
@@ -86,20 +97,20 @@ export default function PaymentsList() {
     });
   };
 
-  // ✅ Get product name
+  // Get product name
   const getProductName = (id) => {
     const type = productTypes.find((p) => p.id === id);
     return type ? type.name : id;
   };
 
-  // ✅ Filter payments
+  // Filter payments
   const filteredPayments = payments.filter((p) => {
     const state = p.state?.toLowerCase();
 
     const matchState = showValidated
       ? state === "validated"
       : state !== "validated";
-      console.log(payments.map(p => p.state));
+    console.log(payments.map(p => p.state));
 
     const matchProduct = selectedProductType
       ? Number(p.productType) === Number(selectedProductType)
@@ -123,7 +134,7 @@ export default function PaymentsList() {
         {/* Controls */}
         <div className="flex justify-between items-center">
           <button
-            className="text-white text-2xl font-bold hover:text-orange-500"
+            className="text-white text-2xl font-bold cursor-pointer hover:text-orange-500"
             onClick={() => window.history.back()}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -131,7 +142,7 @@ export default function PaymentsList() {
 
           <button
             onClick={changeStatus}
-            className="border border-white text-white px-4 py-2 rounded hover:bg-white/10"
+            className="border border-white text-white cursor-pointer px-4 py-2 rounded hover:bg-white/10"
           >
             {showValidated ? "Show Pending" : "Show Validated"}
           </button>
@@ -199,7 +210,7 @@ export default function PaymentsList() {
 
             <button
               onClick={() => setSelectedPayment(null)}
-              className="absolute top-2 right-3 hover:text-red-500"
+              className="absolute top-2 right-3 cursor-pointer hover:text-red-500"
             >
               ✕
             </button>
@@ -212,7 +223,15 @@ export default function PaymentsList() {
               <p><strong>Bank:</strong> {selectedPayment.bankName}</p>
               <p><strong>Amount:</strong> {selectedPayment.amount} DA</p>
 
-              <p className={selectedPayment.state === "validated" ? "text-green-500" : "text-yellow-500"}>
+              <p
+                className={
+                  selectedPayment.state === "validated"
+                    ? "text-green-500"
+                    : selectedPayment.state === "rejected"
+                      ? "text-red-500"
+                      : "text-yellow-500"
+                }
+              >
                 <strong className="text-white">State:</strong> {selectedPayment.state}
               </p>
 
@@ -223,7 +242,7 @@ export default function PaymentsList() {
               <div className="flex justify-between gap-4 mt-3">
                 <p><strong>Validated by:</strong> {selectedPayment.validated_by || "—"}</p>
                 <div className="flex gap-4">
-                  {selectedPayment.state !== "validated" && (
+                  {selectedPayment.state === "pending" && (
                     <>
                       <button
                         onClick={() => handleValidate(selectedPayment.id)}

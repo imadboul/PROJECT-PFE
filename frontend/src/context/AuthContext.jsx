@@ -1,13 +1,14 @@
 import { createContext, useEffect, useState } from "react";
 import api from "../api/axios";
 import { jwtDecode } from 'jwt-decode';
+import toast from "react-hot-toast";
 export const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Restore user from token
+  // Restore user from token
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
@@ -15,8 +16,13 @@ export default function AuthProvider({ children }) {
       try {
         const decoded = jwtDecode(token);
         setUser(decoded);
-      } catch (err) {
-        console.log("Invalid token", err);
+      }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+       toast.error(msg);
+      
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
       }
@@ -25,7 +31,7 @@ export default function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  // ✅ LOGIN
+  // LOGIN
   async function login(email, password) {
     try {
       const res = await api.post("/client/login/", {
@@ -43,35 +49,30 @@ export default function AuthProvider({ children }) {
       setUser(decoded);
 
       return { success: true };
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        "Login failed";
+    } catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error login";
 
-      return {
-        success: false,
-        error: errorMessage, // ✅ string فقط
-      };
-    }
+      toast.error(msg);
+      }
   }
 
-  // ✅ SIGNUP
+  //  SIGNUP
   async function signUp(data) {
     try {
       await api.post("/client/signUp/", data);
       return { success: true };
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        "Signup failed";
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error sign up ";
 
-      return { success: false, error: errorMessage };
-    }
+      toast.error(msg);
+      }
   }
 
-  // ✅ LOGOUT
+  //  LOGOUT
   function logout() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");

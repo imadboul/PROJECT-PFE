@@ -30,8 +30,12 @@ function RequestContract() {
         const res = await getProductTypes();
         const data = res.data.types || res.data;
         setProductTypes(Array.isArray(data) ? data : []);
-      } catch (err) {
-        toast.error("Error fetching product types", err);
+      }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching product type";
+
+      toast.error(msg);
       }
     };
 
@@ -66,18 +70,14 @@ function RequestContract() {
       toast.success("Contract created successfully");
       navigate("/Contracts");
 
-    } catch (err) {
-      console.log(err);
+    }  catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error creating contract";
 
-      if (err.response && err.response.data) {
-        console.log("BACKEND ERROR:", err.response.data);
-
-        // عرض الخطأ كامل
-        toast.error(JSON.stringify(err.response.data));
-
-      } else {
-        toast.error("Something went wrong");
-      }} finally {
+      toast.error(msg);
+      }
+       finally {
         setLoading(false);
       }
     };
@@ -88,7 +88,7 @@ function RequestContract() {
         <div className="w-full  max-w-xl bg-black/60 rounded-2xl shadow-lg p-6 border border-black/60">
 
           <button
-            className="placeholder-white text-2xl text-white font-bold hover:text-orange-500"
+            className="placeholder-white text-2xl cursor-pointer text-white font-bold hover:text-orange-500"
             onClick={() => window.history.back()}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -224,11 +224,8 @@ function RequestContract() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full mt-4 py-2 rounded-lg text-white transition
-            ${loading
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : "font-bold bg-orange-600 hover:bg-orange-700 rounded text-white"
-                }`}
+              className="w-full mt-4 py-2 rounded-lg text-white transition cursor-pointer"
+            
             >
               {loading ? "Loading..." : "Request Contract"}
             </button>

@@ -89,14 +89,9 @@ function AddTypeProduct() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full mt-4 py-2 rounded-lg text-white transition
-            ${
-              loading
-                ? "bg-gray-500 cursor-not-allowed"
-                : "font-bold bg-orange-600 hover:bg-orange-700 rounded text-white"
-            }`}
+            className="w-full py-2 font-bold bg-orange-600 cursor-pointer hover:bg-orange-700 rounded placeholder-white"
           >
-            {loading ? "Loading..." : "Create Type"}
+            {loading ? "Loading..." : "Create Product"}
           </button>
 
         </form>

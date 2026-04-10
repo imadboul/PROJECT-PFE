@@ -1,7 +1,7 @@
 import api from "../../api/axios";
 
-export const getContracts = () => 
-    api.get("/catalog/contract/");
+export const getContracts = () =>
+  api.get("/catalog/contract/");
 
 export const getContractById = (id) => {
   return api.get(`/catalog/contract/${id}`);
@@ -21,5 +21,9 @@ export const rejectContract = (id) =>
     id,
     state: "rejected",
   });
-export const getContractPDF = (id) =>
-    `${api.defaults.baseURL}/catalog/contractPDF/${id}`;
+
+export const getContractPDF = (id) => {
+  return api.get(`/catalog/contractPDF/${id}`, {
+    responseType: "blob",
+  });
+};

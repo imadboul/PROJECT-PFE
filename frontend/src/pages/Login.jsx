@@ -123,11 +123,7 @@ export default function Login() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full mt-6 py-2 rounded-lg text-white transition 
-               ${loading
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-gradient-to-br from-black to-orange-500 hover:from-black hover:to-orange-700"}
-           `}
+            className="w-full mt-6 py-2 rounded-lg font-bold text-white transition bg-orange-600 cursor-pointer hover:bg-orange-700"
           >
             {loading ? "Loading..." : "Login"}
           </button>

@@ -84,7 +84,7 @@ export default function BillsList() {
             {/* Close */}
             <button
               onClick={() => setSelectedBill(null)}
-              className="absolute top-2 right-3 text-white hover:text-red-500 text-xl"
+              className="absolute top-2 right-3 text-white cursor-pointer hover:text-red-500 text-xl"
             >
               ✕
             </button>

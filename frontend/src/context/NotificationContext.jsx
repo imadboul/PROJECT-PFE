@@ -11,9 +11,13 @@ export const NotificationProvider = ({ children }) => {
       const res = await getNotifications();
       const data = res.data.notifications;
       setNotifications(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.log(err);
-    }
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
+      }
   };
 
   useEffect(() => {

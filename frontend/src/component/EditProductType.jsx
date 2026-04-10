@@ -36,8 +36,12 @@ function EditProductType() {
         setValue("name", current.name);
         setValue("description", current.description);
 
-      } catch (err) {
-        toast.error("Error fetching product type",err);
+      }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error fatching data";
+
+      toast.error(msg);
       }
     };
 
@@ -64,14 +68,13 @@ function EditProductType() {
 
       navigate("/AddProduct");
 
-    } catch (error) {
-      const msg =
-        error.response?.data?.detail ||
-        JSON.stringify(error.response?.data) ||
-        "Error saving product type";
+    }catch (error) {
+        const msg =
+        error.response?.data?.error ||
+        "Error creating product type";
 
       toast.error(msg);
-    } finally {
+      }finally {
       setLoading(false);
     }
   };
@@ -114,15 +117,10 @@ function EditProductType() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-orange-500 rounded"
+            className="w-full py-2 font-bold bg-orange-600 cursor-pointer hover:bg-orange-700 rounded placeholder-white"
           >
-            {loading
-              ? "Loading..."
-              : id
-              ? "Update Type"
-              : "Create Type"}
+            {loading ? "Loading..." : "Create Product"}
           </button>
-
         </form>
       </div>
     </div>
