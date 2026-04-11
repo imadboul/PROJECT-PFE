@@ -94,13 +94,13 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate_products(self, value):
        total_qte = 0
        total_price = 0
-
+       
        for item in value:
            qte = item.get('qte', 0)
            product = item.get('product')
 
-           total_qte += qte
-           total_price += product.unit_price * qte
+           total_qte += qte 
+           total_price += product.unit_price * qte   #order (1)
 
        self.total_qte = total_qte
        self.total_price = total_price

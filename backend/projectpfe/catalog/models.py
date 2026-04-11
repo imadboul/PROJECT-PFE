@@ -1,6 +1,6 @@
 from django.db import models
 from user.models import Client
-from decimal import Decimal
+from decimal import Decimal 
 
 class ProductType(models.Model):
 

@@ -1,93 +1,113 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework import status
 from user.models import Client
 from .models import Order,States,OrderProduct
 from .serializers import *
 from rest_framework import generics
 from django.db import transaction
-from .filters import FilterOrderProduct,FilterOrder,FilterOrderAll
-from django.utils.decorators import method_decorator
+from .filters import *
+from Tax_Service.taxCalcul import mains_balances,unitchange
+from rest_framework.exceptions import ValidationError
 from user.wraps import *
-from user.views import notify_all_admin , notify_a_client
+from projectpfe.utils.response import success_response
 
 
 
+class OrderCreateView(generics.CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
 
-@api_view(['POST','GET'])
-@jwt_must
-def order(request):
-    if request.method == 'POST':
-        try:
-            serializer = OrderSerializer(data=request.data, context = {'user_id': request.user_id})
-            if serializer.is_valid():
-                order = serializer.save()  # type: ignore
-                return Response({'data': 'Order created successfully'}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'errorssss': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-    
-    if request.method == 'GET':
-        if request.role == 'client':
-            orders = OrderreadSerializer(Order.objects.filter(client_id = request.user_id), many= True)
-            return Response({"orders": orders.data}, status=status.HTTP_200_OK)
-        else:
-            orders = OrderreadSerializer(Order.objects.all(), many= True)
-            return Response({"orders": orders.data}, status=status.HTTP_200_OK)
-    
-    
-
+    def create(self,request,*args,**kwargs):
         
+            serializer=self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            
+            return success_response(data=None,message='Order created successfully',status_code=201)
+            
+       
 
-        
+
+class OrderValidateView(generics.UpdateAPIView):
     
+    def update(self, request, *args, **kwargs):
+        
+            with transaction.atomic():
+                 
+                 serializer=ValidateOrdersSerializer(data=request.data)
+                 serializer.is_valid(raise_exception=True)
+                 ids=serializer.validated_data['ids']
+                 #validated_by=request.user_id                 
+                 nbOrdes=Order.objects.filter(id__in=ids, states=States.PENDING).update(states=States.VALID)                 
+                 if nbOrdes!=0:
+                    mains_balances(Order.objects.filter(id__in=ids) )
+                    
+                 
+                 return success_response(data=nbOrdes,message='number Order validated successfully',status_code=200)
+        
  
     
-    
+class RectificativeOrderView(generics.CreateAPIView):
+    queryset=Order.objects.all()
+    serializer_class=RectificativeOrderSerializer
+    def create(self, request, *args, **kwargs):
 
-        
-@api_view(['POST'])
-@jwt_must
-def RectificativeOrder(request):
-    
-    
-    try:
-        with transaction.atomic():
-            serializer = RectificativeOrderSerializer(data = request.data, context = {'user_id': request.user_id})
-                         
-    
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"message": "Order created successfully"}, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-    except Exception as e :
-        return  Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) # type: ignore
-        
-     
-@api_view(['GET'])
-@jwt_must
-def get_order(request,id):
-    try:
-        if request.role == 'client':
-            order = OrderreadSerializer(Order.objects.get(id=id,client_id= request.user_id))
-            return Response({"orders": order.data}, status=status.HTTP_200_OK)
-        else:
-            order = OrderreadSerializer(Order.objects.get(id=id))
-            return Response({"orders": order.data}, status=status.HTTP_200_OK)
+            serializer=self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return success_response(data=None,message='Order Rectificative successfully',status_code=201)
+
+
+class OrderListView(generics.ListAPIView):
+   
+   def get(self,request,*args,**kwargs):
+       
+           type=kwargs['type']
+           if type==1:
+              self.queryset=OrderProduct.objects.select_related('order','product').all().distinct()
+              self.serializer_class=OrderProductFilterSerializerOne
+              self.filterset_class=FilterOrderProduct
+           elif type == 2:
+                     filtered = FilterOrder(
+                         request.GET,
+                         queryset=Order.objects.select_related('client', 'contract__product_type')
+                     ).qs
+                 
+                     seen = set()
+                     result = []
+                 
+                     for order in filtered:
+                         key = (order.client.id, order.contract.id)
+                 
+                         if key not in seen:
+                             seen.add(key)
+                             result.append(order)
+                 
+                     serializer = OrderFilterSerializerTow(result, many=True)
+                     return success_response(data=serializer.data , message="filter successfully",status_code=201)
+              
+           elif type==3:
+               self.queryset=Order.objects.select_related('client','contract__product_type').prefetch_related('order_orderProduct_items__product').all().distinct()
+               self.serializer_class=OrderFilterSerializerOne
+               self.filterset_class=FilterOrder   
+           elif type==4:
+               self.queryset=Client.objects.prefetch_related('client_contracts__contract_order_items','client_contracts__product_type').all().distinct()
+               self.serializer_class=ClientFilterSerializerOne
+               self.filterset_class=FilterOrderAll
+           response = super().list(request, *args, **kwargs)
+           return  success_response(data=response.data , message="filter  successfully",status_code=201) 
+       
+ 
+         
+@api_view(['PUT'])     
+def inValid(request):
+    #Order.objects.update(states=States.PENDING)
+    orderProduct=OrderProduct.objects.get(id=3)
+    x=unitchange(orderProduct,'L')
+    return Response({'data':x})
             
-    except Order.DoesNotExist:
-        return Response({'error': 'does not exist or you do not have permission' }, status=status.HTTP_400_BAD_REQUEST)
-        
-        
-        
-        
-        
-    
+
     
 
     
